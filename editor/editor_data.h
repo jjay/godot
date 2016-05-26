@@ -132,6 +132,7 @@ private:
 		int history_current;
 		Dictionary custom_state;
 		uint64_t version;
+		String md5;
 		NodePath live_edit_root;
 	};
 
