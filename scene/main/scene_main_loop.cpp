@@ -1031,10 +1031,15 @@ void SceneTree::_update_root_rect() {
 		if (stretch_aspect == STRETCH_ASPECT_KEEP_HEIGHT) {
 
 			//will stretch horizontally
-			viewport_size.x = desired_res.y * video_mode_aspect;
-			viewport_size.y = desired_res.y;
-			screen_size = video_mode;
-
+			viewport_size.x=desired_res.y*video_mode_aspect;
+			viewport_size.y=desired_res.y;
+			screen_size=video_mode;
+		} else if (stretch_aspect==STRETCH_ASPECT_EXPAND){
+			//viewport_size.x=desired_res.y/video_mode_aspect;
+			//viewport_size.y=desired_res.y;
+			viewport_size.x=desired_res.y*video_mode_aspect;
+			viewport_size.y=desired_res.y;
+			screen_size=video_mode;
 		} else {
 			//will need black bars
 			viewport_size = desired_res;
@@ -1046,10 +1051,14 @@ void SceneTree::_update_root_rect() {
 		if (stretch_aspect == STRETCH_ASPECT_KEEP_WIDTH) {
 
 			//will stretch horizontally
-			viewport_size.x = desired_res.x;
-			viewport_size.y = desired_res.x / video_mode_aspect;
+			viewport_size.x=desired_res.x;
+			viewport_size.y=desired_res.x / video_mode_aspect;
+			screen_size.x=video_mode.x/video_mode_aspect;
+			screen_size.y=video_mode.y;
+		} else if (stretch_aspect==STRETCH_ASPECT_EXPAND){
+			viewport_size.x=desired_res.x;
+			viewport_size.y=desired_res.x/video_mode_aspect;
 			screen_size = video_mode;
-
 		} else {
 			//will need black bars
 			viewport_size = desired_res;
@@ -1064,11 +1073,11 @@ void SceneTree::_update_root_rect() {
 	Size2 margin;
 	Size2 offset;
 	//black bars and margin
-	if (screen_size.x < video_mode.x) {
-		margin.x = Math::round((video_mode.x - screen_size.x) / 2.0);
-		VisualServer::get_singleton()->black_bars_set_margins(margin.x, 0, margin.x, 0);
+	if (stretch_aspect!=STRETCH_ASPECT_EXPAND && screen_size.x < video_mode.x) {
+		margin.x = Math::round((video_mode.x - screen_size.x)/2.0);
+		VisualServer::get_singleton()->black_bars_set_margins(margin.x,0,margin.x,0);
 		offset.x = Math::round(margin.x * viewport_size.y / screen_size.y);
-	} else if (screen_size.y < video_mode.y) {
+	} else if (stretch_aspect!=STRETCH_ASPECT_EXPAND && screen_size.y < video_mode.y) {
 
 		margin.y = Math::round((video_mode.y - screen_size.y) / 2.0);
 		VisualServer::get_singleton()->black_bars_set_margins(0, margin.y, 0, margin.y);
