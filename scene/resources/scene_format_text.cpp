@@ -1564,10 +1564,13 @@ Error ResourceFormatSaverTextInstance::save(const String &p_path, const RES &p_r
 
 			Ref<PackedScene> instance = packed_scene->get_state()->get_node_instance(i);
 			if (instance.is_valid() && !external_resources.has(instance)) {
+				print_line("Adding ext res " + instance->get_path());
 				int index = external_resources.size();
 				external_resources[instance] = index;
 			}
 		}
+	} else {
+		print_line("Scene invalid " + p_path);
 	}
 
 	ERR_FAIL_COND_V(err != OK, err);
