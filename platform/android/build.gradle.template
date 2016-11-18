@@ -18,7 +18,7 @@ allprojects {
 }
 
 dependencies {
-	compile 'com.android.support:support-v4:23.+'  // can be removed if minSdkVersion 16 and modify DownloadNotification.java & V14CustomNotification.java
+	compile 'com.android.support:support-v4:24.+'  // can be removed if minSdkVersion 16 and modify DownloadNotification.java & V14CustomNotification.java
 	$$GRADLE_DEPENDENCIES$$
 }
 
@@ -29,8 +29,8 @@ android {
 		disable 'MissingTranslation'
 	}
 
-	compileSdkVersion 23
-	buildToolsVersion "23.0.3"
+	compileSdkVersion 24
+	buildToolsVersion "24.0.0"
 	useLibrary 'org.apache.http.legacy'
 
 	packagingOptions {
@@ -39,7 +39,7 @@ android {
 	}
 	defaultConfig {
 		minSdkVersion 14
-		targetSdkVersion 23
+		targetSdkVersion 24
 		$$GRADLE_DEFAULT_CONFIG$$
 	}
 	// Both signing and zip-aligning will be done at export time

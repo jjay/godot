@@ -1091,7 +1091,7 @@ JNIEXPORT void JNICALL Java_org_godotengine_godot_GodotLib_touch(JNIEnv *env, jo
 
 	input_mutex->lock();
 
-	pointer_events.push_back(jpe);
+    pointer_events.push_back(jpe);
 
 	input_mutex->unlock();
 	//if (os_android)

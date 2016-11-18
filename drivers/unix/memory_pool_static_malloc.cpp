@@ -61,11 +61,9 @@ void *MemoryPoolStaticMalloc::alloc(size_t p_bytes, const char *p_description) {
 	return (void *)(ptr + ofs);
 #endif
 };
-
 void *MemoryPoolStaticMalloc::_alloc(size_t p_bytes, const char *p_description) {
 
 	ERR_FAIL_COND_V(p_bytes == 0, 0);
-
 	MutexLock lock(mutex);
 
 #ifdef DEBUG_MEMORY_ENABLED
