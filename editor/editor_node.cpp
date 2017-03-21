@@ -1987,10 +1987,6 @@ void EditorNode::_menu_option_confirm(int p_option, bool p_confirmed) {
 			_update_scene_tabs();
 			current_option = -1;
 		} break;
-		case SCENE_RELOAD: {
-			_reload_edited_scene();
-			current_option = -1;
-		} break;
 		case FILE_SAVE_SCENE: {
 
 			Node *scene = editor_data.get_edited_scene_root();
@@ -3304,62 +3300,9 @@ Dictionary EditorNode::_get_main_scene_state() {
 	return state;
 }
 
-<<<<<<< HEAD:editor/editor_node.cpp
 void EditorNode::_set_main_scene_state(Dictionary p_state, Node *p_for_scene) {
 
 	if (get_edited_scene() != p_for_scene && p_for_scene != NULL)
-=======
-void EditorNode::_reload_edited_scene_if_changed() {
-	Node* current_scene = get_edited_scene();
-	if (!current_scene)
-		return;
-
-	String path = current_scene->get_filename();
-	if (path == String())
-		return;
-	
-	if (!FileAccess::exists(path)){
-		show_warning(TTR("The scene file has been deleted from disk") + " (" + path + ")");
-		set_current_version(0);
-		_update_scene_tabs();
-		return;
-	}
-
-	String md5 = FileAccess::get_md5(path);
-	if (editor_data.get_edited_scene_md5() == md5)
-		return;
-
-	if (saved_version==editor_data.get_undo_redo().get_version()) {
-		_reload_edited_scene();
-	} else {
-		current_option = SCENE_RELOAD;
-		confirmation->get_ok()->set_text(TTR("Reload from disk"));
-		confirmation->set_text(TTR("The scene file has been modified on the disk."));
-		confirmation->popup_centered_minsize();
-		editor_data.set_edited_scene_md5(md5); // ask only once
-	}
-}
-
-void EditorNode::_reload_edited_scene(){
-	Node* current_scene = get_edited_scene();
-	if (!current_scene)
-		return;
-
-	String path = current_scene->get_filename();
-	if (path == String())
-		return;
-
-	int idx = editor_data.get_edited_scene();
-	editor_data.remove_scene(idx);
-	editor_data.get_undo_redo().clear_history();
-	Error err = load_scene(path);
-	if (err == OK)
-		editor_data.move_edited_scene_to_index(idx);
-}
-
-void EditorNode::_set_main_scene_state(Dictionary p_state,Node* p_for_scene) {
-	if (get_edited_scene()!=p_for_scene && p_for_scene!=NULL)
->>>>>>> Reload scene if it was modified on disk.:tools/editor/editor_node.cpp
 		return; //not for this scene
 
 	//print_line("set current 7 ");
@@ -3497,12 +3440,7 @@ void EditorNode::set_current_scene(int p_idx) {
 	}*/
 	//_set_main_scene_state(state);
 
-<<<<<<< HEAD:editor/editor_node.cpp
 	call_deferred("_set_main_scene_state", state, get_edited_scene()); //do after everything else is done setting up
-=======
-	call_deferred("_set_main_scene_state",state,get_edited_scene()); //do after everything else is done setting up
-	call_deferred("_reload_edited_scene_if_changed");
->>>>>>> Reload scene if it was modified on disk.:tools/editor/editor_node.cpp
 	//print_line("set current 6 ");
 }
 
@@ -3681,12 +3619,7 @@ Error EditorNode::load_scene(const String &p_scene, bool p_ignore_broken_deps, b
 	property_editor->edit(new_scene);
 	editor_data.set_edited_scene_root(new_scene);
 */
-<<<<<<< HEAD:editor/editor_node.cpp
 	editor_data.set_edited_scene_import_metadata(sdata->get_import_metadata());
-=======
-	editor_data.set_edited_scene_import_metadata( sdata->get_import_metadata() );
-	editor_data.set_edited_scene_md5(FileAccess::get_md5(lpath));
->>>>>>> Reload scene if it was modified on disk.:tools/editor/editor_node.cpp
 
 	//	editor_data.get_undo_redo().clear_history();
 	saved_version = editor_data.get_undo_redo().get_version();
@@ -5069,7 +5002,6 @@ void EditorNode::_bind_methods() {
 
 	ObjectTypeDB::bind_method("_import_action", &EditorNode::_import_action);
 	//ObjectTypeDB::bind_method("_import",&EditorNode::_import);
-<<<<<<< HEAD:editor/editor_node.cpp
 	//	ObjectTypeDB::bind_method("_import_conflicts_solved",&EditorNode::_import_conflicts_solved);
 	ObjectTypeDB::bind_method("_open_recent_scene", &EditorNode::_open_recent_scene);
 	//	ObjectTypeDB::bind_method("_open_recent_scene_confirm",&EditorNode::_open_recent_scene_confirm);
@@ -5107,49 +5039,7 @@ void EditorNode::_bind_methods() {
 	ObjectTypeDB::bind_method("_clear_undo_history", &EditorNode::_clear_undo_history);
 	ObjectTypeDB::bind_method("_dropped_files", &EditorNode::_dropped_files);
 	ObjectTypeDB::bind_method("_export_godot3_path", &EditorNode::_export_godot3_path);
-=======
-//	ObjectTypeDB::bind_method("_import_conflicts_solved",&EditorNode::_import_conflicts_solved);
-	ObjectTypeDB::bind_method("_open_recent_scene",&EditorNode::_open_recent_scene);
-//	ObjectTypeDB::bind_method("_open_recent_scene_confirm",&EditorNode::_open_recent_scene_confirm);
 
-	ObjectTypeDB::bind_method("_save_optimized",&EditorNode::_save_optimized);
-
-	ObjectTypeDB::bind_method("stop_child_process",&EditorNode::stop_child_process);
-
-	ObjectTypeDB::bind_method("_sources_changed",&EditorNode::_sources_changed);
-	ObjectTypeDB::bind_method("_fs_changed",&EditorNode::_fs_changed);
-	ObjectTypeDB::bind_method("_dock_select_draw",&EditorNode::_dock_select_draw);
-	ObjectTypeDB::bind_method("_dock_select_input",&EditorNode::_dock_select_input);
-	ObjectTypeDB::bind_method("_dock_pre_popup",&EditorNode::_dock_pre_popup);
-	ObjectTypeDB::bind_method("_dock_split_dragged",&EditorNode::_dock_split_dragged);
-	ObjectTypeDB::bind_method("_save_docks",&EditorNode::_save_docks);
-	ObjectTypeDB::bind_method("_dock_popup_exit",&EditorNode::_dock_popup_exit);
-	ObjectTypeDB::bind_method("_dock_move_left",&EditorNode::_dock_move_left);
-	ObjectTypeDB::bind_method("_dock_move_right",&EditorNode::_dock_move_right);
-
-	ObjectTypeDB::bind_method("_layout_menu_option",&EditorNode::_layout_menu_option);
-
-	ObjectTypeDB::bind_method("set_current_scene",&EditorNode::set_current_scene);
-	ObjectTypeDB::bind_method("set_current_version",&EditorNode::set_current_version);
-	ObjectTypeDB::bind_method("_scene_tab_changed",&EditorNode::_scene_tab_changed);
-	ObjectTypeDB::bind_method("_scene_tab_closed",&EditorNode::_scene_tab_closed);
-	ObjectTypeDB::bind_method("_scene_tab_script_edited",&EditorNode::_scene_tab_script_edited);
-	ObjectTypeDB::bind_method("_set_main_scene_state",&EditorNode::_set_main_scene_state);
-	ObjectTypeDB::bind_method("_update_scene_tabs",&EditorNode::_update_scene_tabs);
-	ObjectTypeDB::bind_method("_reload_edited_scene",&EditorNode::_reload_edited_scene);
-	ObjectTypeDB::bind_method("_reload_edited_scene_if_changed",&EditorNode::_reload_edited_scene_if_changed);
-
-	ObjectTypeDB::bind_method("_prepare_history",&EditorNode::_prepare_history);
-	ObjectTypeDB::bind_method("_select_history",&EditorNode::_select_history);
-
-	ObjectTypeDB::bind_method("_toggle_search_bar",&EditorNode::_toggle_search_bar);
-	ObjectTypeDB::bind_method("_clear_search_box",&EditorNode::_clear_search_box);
-	ObjectTypeDB::bind_method("_clear_undo_history",&EditorNode::_clear_undo_history);
-	ObjectTypeDB::bind_method("_dropped_files",&EditorNode::_dropped_files);
-	ObjectTypeDB::bind_method("_export_godot3_path",&EditorNode::_export_godot3_path);
-
-
->>>>>>> Reload scene if it was modified on disk.:tools/editor/editor_node.cpp
 
 	ObjectTypeDB::bind_method(_MD("add_editor_import_plugin", "plugin"), &EditorNode::add_editor_import_plugin);
 	ObjectTypeDB::bind_method(_MD("remove_editor_import_plugin", "plugin"), &EditorNode::remove_editor_import_plugin);
