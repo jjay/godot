@@ -1,3 +1,0 @@
-[submodule "thirdparty/spine"]
-	path = thirdparty/spine
-	url = git://github.com/jjay/godot-spine-module.git
