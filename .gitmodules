@@ -1,3 +1,6 @@
 [submodule "modules/spine"]
 	path = modules/spine
 	url = git@github.com:jjay/godot-spine-module
+[submodule "modules/modules/appsflyer"]
+	path = modules/modules/appsflyer
+	url = ssh://git@labs.corpwebgames.com:722/summertales/godot-appsflyer-module.git
