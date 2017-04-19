@@ -4,3 +4,6 @@
 [submodule "modules/modules/appsflyer"]
 	path = modules/modules/appsflyer
 	url = ssh://git@labs.corpwebgames.com:722/summertales/godot-appsflyer-module.git
+[submodule "modules/appsflyer"]
+	path = modules/appsflyer
+	url = ssh://git@labs.corpwebgames.com:722/summertales/godot-appsflyer-module.git
