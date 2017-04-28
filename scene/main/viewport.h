@@ -183,6 +183,7 @@ private:
 		Point2 drag_accum;
 		bool drag_attempted;
 		Variant drag_data;
+		float drag_begin_threshold;
 		Control *drag_preview;
 		float tooltip_timer;
 		float tooltip_delay;

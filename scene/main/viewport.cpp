@@ -1819,7 +1819,7 @@ void Viewport::_gui_input_event(InputEvent p_event) {
 
 				gui.drag_accum += Point2(p_event.mouse_motion.relative_x, p_event.mouse_motion.relative_y);
 				float len = gui.drag_accum.length();
-				if (len > 10) {
+				if (len > gui.drag_begin_threshold) {
 					gui.drag_data = gui.mouse_focus->get_drag_data(gui.focus_inv_xform.xform(mpos) - gui.drag_accum);
 					if (gui.drag_data.get_type() != Variant::NIL) {
 
@@ -2557,6 +2557,7 @@ Viewport::Viewport() {
 
 	//gui.tooltip_timer->force_parent_owned();
 	gui.tooltip_delay = GLOBAL_DEF("display/tooltip_delay", 0.7);
+	gui.drag_begin_threshold = GLOBAL_DEF("display/drag_begin_threshold", 10);
 
 	gui.tooltip = NULL;
 	gui.tooltip_label = NULL;
