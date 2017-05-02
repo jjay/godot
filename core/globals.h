@@ -136,6 +136,7 @@ public:
 
 	void add_singleton(const Singleton &p_singleton);
 	void get_singletons(List<Singleton> *p_singletons);
+	void set_global_variable(const String &name, const Variant &var);
 
 	bool has_singleton(const String &p_name) const;
 

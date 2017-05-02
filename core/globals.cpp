@@ -1315,6 +1315,12 @@ Vector<String> Globals::get_optimizer_presets() const {
 	return names;
 }
 
+void Globals::set_global_variable(const String &name, const Variant &var){
+	for (int i = 0; i < ScriptServer::get_language_count(); i++) {
+		ScriptServer::get_language(i)->add_global_constant(name, var);
+	}
+}
+
 void Globals::_add_property_info_bind(const Dictionary &p_info) {
 
 	ERR_FAIL_COND(!p_info.has("name"));
@@ -1365,6 +1371,7 @@ void Globals::_bind_methods() {
 	ObjectTypeDB::bind_method(_MD("has_singleton", "name"), &Globals::has_singleton);
 	ObjectTypeDB::bind_method(_MD("get_singleton", "name"), &Globals::get_singleton_object);
 	ObjectTypeDB::bind_method(_MD("load_resource_pack", "pack"), &Globals::_load_resource_pack);
+	ObjectTypeDB::bind_method(_MD("set_global_variable", "name", "var"), &Globals::set_global_variable);
 
 	ObjectTypeDB::bind_method(_MD("save_custom", "file"), &Globals::_save_custom_bnd);
 }
