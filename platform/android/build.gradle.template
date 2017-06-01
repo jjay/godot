@@ -20,6 +20,7 @@ allprojects {
 
 dependencies {
 	compile 'com.android.support:support-v4:24.+'  // can be removed if minSdkVersion 16 and modify DownloadNotification.java & V14CustomNotification.java
+    compile 'com.android.support:appcompat-v7:24.+'
 	$$GRADLE_DEPENDENCIES$$
 }
 
@@ -39,7 +40,7 @@ android {
 		exclude 'META-INF/NOTICE'
 	}
 	defaultConfig {
-		minSdkVersion 14
+		minSdkVersion 16
 		targetSdkVersion 23
 		$$GRADLE_DEFAULT_CONFIG$$
 	}

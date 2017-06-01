@@ -7,3 +7,6 @@
 [submodule "modules/notifications"]
 	path = modules/notifications
 	url = git@github.com:jjay/godot-notifications.git
+[submodule "modules/facebook"]
+	path = modules/facebook
+	url = git@github.com:jjay/godot-facebook.git
