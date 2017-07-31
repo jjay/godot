@@ -90,6 +90,8 @@ import android.os.Bundle;
 import android.os.Messenger;
 import android.os.SystemClock;
 
+import com.appsflyer.AppsFlyerLib;
+
 
 public class Godot extends Activity implements SensorEventListener, IDownloaderClient
 {	
@@ -417,6 +419,7 @@ public class Godot extends Activity implements SensorEventListener, IDownloaderC
 		result_callback = null;
 
 		mPaymentsManager = PaymentsManager.createManager(this).initService();
+        
 		godot_initialized=true;
 
 	}
@@ -585,8 +588,15 @@ public class Godot extends Activity implements SensorEventListener, IDownloaderC
 
 		initializeGodot();
 
+
+
 		
 	//	instanceSingleton( new GodotFacebook(this) );
+        final Application application = getApplication();
+        String dev_key = GodotLib.getGlobal("AppsFlyer/dev_key");
+        AppsFlyerLib.getInstance().setAndroidIdData(Secure.getString(getContentResolver(), Secure.ANDROID_ID));
+        AppsFlyerLib.getInstance().setCustomerUserId(Secure.getString(getContentResolver(), Secure.ANDROID_ID));
+        AppsFlyerLib.getInstance().startTracking(application, dev_key);
 
 
 	}
