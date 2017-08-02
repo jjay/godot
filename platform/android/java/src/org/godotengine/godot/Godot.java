@@ -407,14 +407,23 @@ public class Godot extends Activity implements SensorEventListener, IDownloaderC
 		}*/
 		GodotLib.initialize(this,io.needsReloadHooks(),command_line,getAssets());
 		mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
-		mAccelerometer = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
-		mSensorManager.registerListener(this, mAccelerometer, SensorManager.SENSOR_DELAY_GAME);
-		mGravity = mSensorManager.getDefaultSensor(Sensor.TYPE_GRAVITY);
-		mSensorManager.registerListener(this, mGravity, SensorManager.SENSOR_DELAY_GAME);
-		mMagnetometer = mSensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
-		mSensorManager.registerListener(this, mMagnetometer, SensorManager.SENSOR_DELAY_GAME);
-		mGyroscope = mSensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE);
-		mSensorManager.registerListener(this, mGyroscope, SensorManager.SENSOR_DELAY_GAME);
+    
+        if (GodotLib.getGlobal("sensors/accelerometer").equals("True")){
+            mAccelerometer = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+            mSensorManager.registerListener(this, mAccelerometer, SensorManager.SENSOR_DELAY_GAME);
+        }
+        if (GodotLib.getGlobal("sensors/gravity").equals("True")){
+            mGravity = mSensorManager.getDefaultSensor(Sensor.TYPE_GRAVITY);
+            mSensorManager.registerListener(this, mGravity, SensorManager.SENSOR_DELAY_GAME);
+        }
+        if (GodotLib.getGlobal("sensors/magnetometer").equals("True")){
+            mMagnetometer = mSensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
+            mSensorManager.registerListener(this, mMagnetometer, SensorManager.SENSOR_DELAY_GAME);
+        }
+        if (GodotLib.getGlobal("sensors/gyroscope").equals("True")){
+            mGyroscope = mSensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE);
+            mSensorManager.registerListener(this, mGyroscope, SensorManager.SENSOR_DELAY_GAME);
+        }
 
 		result_callback = null;
 
@@ -638,10 +647,14 @@ public class Godot extends Activity implements SensorEventListener, IDownloaderC
 		}
 
 		mView.onResume();
-		mSensorManager.registerListener(this, mAccelerometer, SensorManager.SENSOR_DELAY_GAME);
-		mSensorManager.registerListener(this, mGravity, SensorManager.SENSOR_DELAY_GAME);
-		mSensorManager.registerListener(this, mMagnetometer, SensorManager.SENSOR_DELAY_GAME);
-		mSensorManager.registerListener(this, mGyroscope, SensorManager.SENSOR_DELAY_GAME);
+        if (GodotLib.getGlobal("sensors/accelerometer").equals("True"))
+		    mSensorManager.registerListener(this, mAccelerometer, SensorManager.SENSOR_DELAY_GAME);
+        if (GodotLib.getGlobal("sensors/gravity").equals("True"))
+		    mSensorManager.registerListener(this, mGravity, SensorManager.SENSOR_DELAY_GAME);
+        if (GodotLib.getGlobal("sensors/magnetometer").equals("True"))
+		    mSensorManager.registerListener(this, mMagnetometer, SensorManager.SENSOR_DELAY_GAME);
+        if (GodotLib.getGlobal("sensors/gyroscope").equals("True"))
+		    mSensorManager.registerListener(this, mGyroscope, SensorManager.SENSOR_DELAY_GAME);
 		GodotLib.focusin();
 		if(use_immersive && Build.VERSION.SDK_INT >= 19.0){ // check if the application runs on an android 4.4+
 			Window window = getWindow();
