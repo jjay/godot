@@ -28,12 +28,14 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
 #include "file_access.h"
+
 #include "core/io/file_access_pack.h"
 #include "core/io/marshalls.h"
 #include "globals.h"
-#include "io/md5.h"
-#include "io/sha256.h"
 #include "os/os.h"
+
+#include "thirdparty/misc/md5.h"
+#include "thirdparty/misc/sha256.h"
 
 FileAccess::CreateFunc FileAccess::create_func[ACCESS_MAX] = { 0, 0 };
 
@@ -277,6 +279,8 @@ Vector<String> FileAccess::get_csv_line(String delim) const {
 	String l;
 	int qc = 0;
 	do {
+		ERR_FAIL_COND_V(eof_reached(), Vector<String>());
+
 		l += get_line() + "\n";
 		qc = 0;
 		for (int i = 0; i < l.length(); i++) {

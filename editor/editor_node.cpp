@@ -33,6 +33,7 @@
 #include "version.h"
 
 #include "animation_editor.h"
+#include "authors.gen.h"
 #include "bind/core_bind.h"
 #include "core/io/resource_loader.h"
 #include "core/io/resource_saver.h"
@@ -193,28 +194,20 @@ void EditorNode::_unhandled_input(const InputEvent &p_event) {
 			filesystem_dock->focus_on_filter();
 		}
 
-		switch (p_event.key.scancode) {
-
-			/*case KEY_F1:
-				if (!p_event.key.mod.shift && !p_event.key.mod.command)
-					_editor_select(EDITOR_SCRIPT);
-			break;*/
-			case KEY_F1:
-				if (!p_event.key.mod.shift && !p_event.key.mod.command)
-					_editor_select(EDITOR_2D);
-				break;
-			case KEY_F2:
-				if (!p_event.key.mod.shift && !p_event.key.mod.command)
-					_editor_select(EDITOR_3D);
-				break;
-			case KEY_F3:
-				if (!p_event.key.mod.shift && !p_event.key.mod.command)
-					_editor_select(EDITOR_SCRIPT);
-				break;
-				/*	case KEY_F5: _menu_option_confirm((p_event.key.mod.control&&p_event.key.mod.shift)?RUN_PLAY_CUSTOM_SCENE:RUN_PLAY,true); break;
-			case KEY_F6: _menu_option_confirm(RUN_PLAY_SCENE,true); break;
-			//case KEY_F7: _menu_option_confirm(RUN_PAUSE,true); break;
-			case KEY_F8: _menu_option_confirm(RUN_STOP,true); break;*/
+		if (ED_IS_SHORTCUT("editor/editor_2d", p_event)) {
+			_editor_select(EDITOR_2D);
+		} else if (ED_IS_SHORTCUT("editor/editor_3d", p_event)) {
+			_editor_select(EDITOR_3D);
+		} else if (ED_IS_SHORTCUT("editor/editor_script", p_event)) {
+			_editor_select(EDITOR_SCRIPT);
+		} else if (ED_IS_SHORTCUT("editor/editor_help", p_event)) {
+			emit_signal("request_help_search", "");
+		} else if (ED_IS_SHORTCUT("editor/editor_assetlib", p_event)) {
+			_editor_select(EDITOR_ASSETLIB);
+		} else if (ED_IS_SHORTCUT("editor/editor_next", p_event)) {
+			_editor_select_next();
+		} else if (ED_IS_SHORTCUT("editor/editor_prev", p_event)) {
+			_editor_select_prev();
 		}
 	}
 }
@@ -404,6 +397,7 @@ void EditorNode::_notification(int p_what) {
 
 	if (p_what == EditorSettings::NOTIFICATION_EDITOR_SETTINGS_CHANGED) {
 		scene_tabs->set_tab_close_display_policy((bool(EDITOR_DEF("global/always_show_close_button_in_scene_tabs", false)) ? Tabs::CLOSE_BUTTON_SHOW_ALWAYS : Tabs::CLOSE_BUTTON_SHOW_ACTIVE_ONLY));
+		property_editor->set_enable_capitalize_paths(bool(EDITOR_DEF("inspector/capitalize_properties", true)));
 	}
 }
 
@@ -492,6 +486,30 @@ void EditorNode::_node_renamed() {
 
 	if (property_editor)
 		property_editor->update_tree();
+}
+
+void EditorNode::_editor_select_next() {
+
+	int editor = _get_current_main_editor();
+
+	if (editor == editor_table.size() - 1) {
+		editor = 0;
+	} else {
+		editor++;
+	}
+	_editor_select(editor);
+}
+
+void EditorNode::_editor_select_prev() {
+
+	int editor = _get_current_main_editor();
+
+	if (editor == 0) {
+		editor = editor_table.size() - 1;
+	} else {
+		editor--;
+	}
+	_editor_select(editor);
 }
 
 Error EditorNode::load_resource(const String &p_scene) {
@@ -1119,7 +1137,8 @@ void EditorNode::_dialog_action(String p_file) {
 			Globals::get_singleton()->set("application/main_scene", p_file);
 			Globals::get_singleton()->set_persisting("application/main_scene", true);
 			Globals::get_singleton()->save();
-			//would be nice to show the project manager opened with the hilighted field..
+			//would be nice to show the project manager opened with the highlighted field..
+			_run(false, ""); // automatically run the project
 		} break;
 		case FILE_SAVE_OPTIMIZED: {
 
@@ -2066,14 +2085,15 @@ void EditorNode::_menu_option_confirm(int p_option, bool p_confirmed) {
 		} break;
 		case FILE_SAVE_BEFORE_RUN: {
 			if (!p_confirmed) {
-				accept->get_ok()->set_text(TTR("Yes"));
-				accept->set_text(TTR("This scene has never been saved. Save before running?"));
-				accept->popup_centered_minsize();
+				confirmation->get_cancel()->set_text(TTR("No"));
+				confirmation->get_ok()->set_text(TTR("Yes"));
+				confirmation->set_text(TTR("This scene has never been saved. Save before running?"));
+				confirmation->popup_centered_minsize();
 				break;
 			}
 
 			_menu_option(FILE_SAVE_AS_SCENE);
-			_menu_option_confirm(FILE_SAVE_AND_RUN, true);
+			_menu_option_confirm(FILE_SAVE_AND_RUN, false);
 		} break;
 
 		case FILE_DUMP_STRINGS: {
@@ -2984,7 +3004,7 @@ void EditorNode::set_addon_plugin_enabled(const String &p_addon, bool p_enabled)
 	}
 
 	if (!script->is_tool()) {
-		show_warning("Unable to load addon script from path: '" + path + "' Script is does not support tool mode.");
+		show_warning("Unable to load addon script from path: '" + path + "' Script is not in tool mode.");
 		return;
 	}
 
@@ -5051,6 +5071,7 @@ void EditorNode::_bind_methods() {
 	ADD_SIGNAL(MethodInfo("pause_pressed"));
 	ADD_SIGNAL(MethodInfo("stop_pressed"));
 	ADD_SIGNAL(MethodInfo("request_help"));
+	ADD_SIGNAL(MethodInfo("request_help_search"));
 	ADD_SIGNAL(MethodInfo("script_add_function_request", PropertyInfo(Variant::OBJECT, "obj"), PropertyInfo(Variant::STRING, "function"), PropertyInfo(Variant::STRING_ARRAY, "args")));
 	ADD_SIGNAL(MethodInfo("resource_saved", PropertyInfo(Variant::OBJECT, "obj")));
 }
@@ -5878,6 +5899,7 @@ EditorNode::EditorNode() {
 	property_editor->set_show_categories(true);
 	property_editor->set_v_size_flags(Control::SIZE_EXPAND_FILL);
 	property_editor->set_use_doc_hints(true);
+	property_editor->set_enable_capitalize_paths(bool(EDITOR_DEF("inspector/capitalize_properties", true)));
 
 	property_editor->hide_top_label();
 	property_editor->register_text_enter(search_box);
@@ -6034,14 +6056,49 @@ EditorNode::EditorNode() {
 	about->get_ok()->set_text(TTR("Thanks!"));
 	about->set_hide_on_ok(true);
 	gui_base->add_child(about);
+	VBoxContainer *vbc = memnew(VBoxContainer);
 	HBoxContainer *hbc = memnew(HBoxContainer);
-	about->add_child(hbc);
+	hbc->set_h_size_flags(Control::SIZE_EXPAND_FILL);
+	hbc->set_alignment(BoxContainer::ALIGN_CENTER);
+	about->add_child(vbc);
+	vbc->add_child(hbc);
 	Label *about_text = memnew(Label);
-	about_text->set_text(VERSION_FULL_NAME "\n(c) 2008-2017 Juan Linietsky, Ariel Manzur.\n");
+	about_text->set_text(VERSION_FULL_NAME + String::utf8("\n\u00A9 2007-2017 Juan Linietsky, Ariel Manzur.\n\u00A9 2014-2017 ") + TTR("Godot Engine contributors") + "\n");
 	TextureFrame *logo = memnew(TextureFrame);
 	logo->set_texture(gui_base->get_icon("Logo", "EditorIcons"));
 	hbc->add_child(logo);
 	hbc->add_child(about_text);
+	TabContainer *tc = memnew(TabContainer);
+	tc->set_custom_minimum_size(Vector2(740, 300));
+	vbc->add_child(tc);
+	ScrollContainer *dev_base = memnew(ScrollContainer);
+	dev_base->set_name(TTR("Developers"));
+	tc->add_child(dev_base);
+	HBoxContainer *dev_hbc = memnew(HBoxContainer);
+	dev_hbc->set_h_size_flags(Control::SIZE_EXPAND_FILL);
+	dev_base->add_child(dev_hbc);
+	for (int i = 0; i < 3; i++) {
+		Label *dev_label = memnew(Label);
+		dev_label->set_h_size_flags(Control::SIZE_EXPAND);
+		dev_label->set_v_size_flags(Control::SIZE_FILL);
+		dev_hbc->add_child(dev_label);
+	}
+	int dev_name_index = 0;
+	int dev_name_column = 0;
+	const int dev_index_max = AUTHORS_COUNT / 3 + (AUTHORS_COUNT % 3 == 0 ? 0 : 1);
+	String dev_name = "";
+	const char **dev_names_ptr = dev_names;
+	while (*dev_names_ptr) {
+		dev_name += String::utf8(*dev_names_ptr++);
+		if (++dev_name_index == dev_index_max || !*dev_names_ptr) {
+			dev_hbc->get_child(dev_name_column)->cast_to<Label>()->set_text(dev_name);
+			dev_name_column++;
+			dev_name = "";
+			dev_name_index = 0;
+		} else {
+			dev_name += "\n";
+		}
+	}
 
 	warning = memnew(AcceptDialog);
 	gui_base->add_child(warning);
@@ -6312,7 +6369,10 @@ EditorNode::EditorNode() {
 	{
 
 		_initializing_addons = true;
-		Vector<String> addons = Globals::get_singleton()->get("editor_plugins/enabled");
+		Vector<String> addons;
+		if (Globals::get_singleton()->has("editor_plugins/enabled")) {
+			addons = Globals::get_singleton()->get("editor_plugins/enabled");
+		}
 
 		for (int i = 0; i < addons.size(); i++) {
 			set_addon_plugin_enabled(addons[i], true);
@@ -6323,6 +6383,14 @@ EditorNode::EditorNode() {
 	_load_docks();
 
 	FileAccess::set_file_close_fail_notify_callback(_file_access_close_error_notify);
+
+	ED_SHORTCUT("editor/editor_2d", TTR("Open 2D Editor"), KEY_F2);
+	ED_SHORTCUT("editor/editor_3d", TTR("Open 3D Editor"), KEY_F3);
+	ED_SHORTCUT("editor/editor_script", TTR("Open Script Editor"), KEY_F4);
+	ED_SHORTCUT("editor/editor_help", TTR("Search Help"), KEY_F1);
+	ED_SHORTCUT("editor/editor_assetlib", TTR("Open Asset Library"));
+	ED_SHORTCUT("editor/editor_next", TTR("Open the next Editor"));
+	ED_SHORTCUT("editor/editor_prev", TTR("Open the previous Editor"));
 }
 
 EditorNode::~EditorNode() {

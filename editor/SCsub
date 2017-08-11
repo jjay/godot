@@ -129,6 +129,30 @@ def make_translations_header(target, source, env):
 
     g.write("#endif")
 
+def make_authors_header(target, source, env):
+
+    src = source[0].srcnode().abspath
+    dst = target[0].srcnode().abspath
+    f = open(src, "rb")
+    g = open(dst, "wb")
+
+    g.write("/* THIS FILE IS GENERATED DO NOT EDIT */\n")
+    g.write("#ifndef _EDITOR_AUTHORS_H\n")
+    g.write("#define _EDITOR_AUTHORS_H\n")
+    g.write("static const char *dev_names[] = {\n")
+
+    name_count = -1
+    for line in f:
+        if name_count >= 0:
+            if line.startswith("    "):
+                g.write("\t\"" + line.strip() + "\",\n")
+                name_count += 1
+        elif line.strip() == "## Developers":
+            name_count = 0
+    g.write("\t0\n")
+    g.write("};\n")
+    g.write("#define AUTHORS_COUNT " + str(name_count) + "\n")
+    g.write("#endif\n")
 
 if (env["tools"] == "yes"):
 
@@ -140,18 +164,18 @@ if (env["tools"] == "yes"):
         reg_exporters += '\tregister_' + e + '_exporter();\n'
         reg_exporters_inc += '#include "platform/' + e + '/export/export.h"\n'
     reg_exporters += '}\n'
-    f = open("register_exporters.cpp", "wb")
+    f = open("register_exporters.gen.cpp", "wb")
     f.write(reg_exporters_inc)
     f.write(reg_exporters)
     f.close()
 
     # API documentation
-    env.Depends("#editor/doc_data_compressed.h", "#doc/base/classes.xml")
-    env.Command("#editor/doc_data_compressed.h", "#doc/base/classes.xml", make_doc_header)
+    env.Depends("#editor/doc_data_compressed.gen.h", "#doc/base/classes.xml")
+    env.Command("#editor/doc_data_compressed.gen.h", "#doc/base/classes.xml", make_doc_header)
 
     # Certificates
-    env.Depends("#editor/certs_compressed.h", "#thirdparty/certs/ca-certificates.crt")
-    env.Command("#editor/certs_compressed.h", "#thirdparty/certs/ca-certificates.crt", make_certs_header)
+    env.Depends("#editor/certs_compressed.gen.h", "#thirdparty/certs/ca-certificates.crt")
+    env.Command("#editor/certs_compressed.gen.h", "#thirdparty/certs/ca-certificates.crt", make_certs_header)
 
     import glob
     path = env.Dir('.').abspath
@@ -159,15 +183,19 @@ if (env["tools"] == "yes"):
     # Translations
     tlist = glob.glob(path + "/translations/*.po")
     print("translations: ", tlist)
-    env.Depends('#editor/translations.h', tlist)
-    env.Command('#editor/translations.h', tlist, make_translations_header)
+    env.Depends('#editor/translations.gen.h', tlist)
+    env.Command('#editor/translations.gen.h', tlist, make_translations_header)
 
     # Fonts
     flist = glob.glob(path + "/../thirdparty/fonts/*.ttf")
     flist.append(glob.glob(path + "/../thirdparty/fonts/*.otf"))
     print("fonts: ", flist)
-    env.Depends('#editor/builtin_fonts.h', flist)
-    env.Command('#editor/builtin_fonts.h', flist, make_fonts_header)
+    env.Depends('#editor/builtin_fonts.gen.h', flist)
+    env.Command('#editor/builtin_fonts.gen.h', flist, make_fonts_header)
+
+    # Authors
+    env.Depends('#editor/authors.gen.h', "../AUTHORS.md")
+    env.Command('#editor/authors.gen.h', "../AUTHORS.md", make_authors_header)
 
 
     env.add_source_files(env.editor_sources, "*.cpp")

@@ -1,6 +1,13 @@
 # Third party libraries
 
 
+## b2d_convexdecomp
+
+- Upstream: https://github.com/erincatto/Box2D (Contributions/Utilities/ConvexDecomposition)
+- Version: TBD
+- License: zlib
+
+
 ## certs
 
 - Upstream: ?
@@ -18,7 +25,7 @@ TODO.
 ## freetype
 
 - Upstream: https://www.freetype.org
-- Version: 2.6.5
+- Version: 2.8
 - License: FreeType License (BSD-like)
 
 Files extracted from upstream source:
@@ -81,7 +88,7 @@ Files extracted from upstream source:
 ## libpng
 
 - Upstream: http://libpng.org/pub/png/libpng.html
-- Version: 1.6.29
+- Version: 1.6.31rc01
 - License: libpng/zlib
 
 Files extracted from upstream source:
@@ -121,6 +128,83 @@ changes to ensure they build for Javascript/HTML5. Those
 changes are marked with `// -- GODOT --` comments.
 
 
+## minizip
+
+- Upstream: http://www.zlib.net
+- Version: 1.2.4 (zlib contrib)
+- License: zlib
+
+Files extracted from the upstream source:
+
+- contrib/minizip/{crypt.h,ioapi.{c,h},zip.{c,h},unzip.{c,h}}
+
+Important: Some files have Godot-made changes for use in core/io.
+TODO: Properly sync with version 1.2.4 and document changes.
+
+
+## misc
+
+Collection of single-file libraries used in Godot components.
+
+### core
+
+- `aes256.{cpp,h}`
+  * Upstream: http://www.literatecode.com/aes256
+  * Version: latest, as of April 2017
+  * License: ISC
+- `base64.{c,h}`
+  * Upstream: http://episec.com/people/edelkind/c.html
+  * Version: latest, as of April 2017
+  * License: Public Domain
+- `fastlz.{c,h}`
+  * Upstream: https://code.google.com/archive/p/fastlz
+  * Version: svn (r12)
+  * License: MIT
+- `hq2x.{cpp,h}`
+  * Upstream: https://github.com/brunexgeek/hqx
+  * Version: TBD, file structure differs
+  * License: Apache 2.0
+- `md5.{cpp,h}`
+  * Upstream: http://www.efgh.com/software/md5.htm
+  * Version: TBD, might not be latest from above URL
+  * License: RSA Message-Digest License
+- `sha256.{c,h}`
+  * Upstream: https://github.com/ilvn/SHA256
+  * Version: git (35ff823, 2015)
+  * License: ISC
+- `smaz.{c,h}`
+  * Upstream: https://github.com/antirez/smaz
+  * Version: git (150e125, 2009)
+  * License: BSD 3-clause
+  * Modifications: use `const char*` instead of `char*` for input string
+- `triangulator.{cpp,h}`
+  * Upstream: https://github.com/ivanfratric/polypartition (`src/polypartition.cpp`)
+  * Version: TBD, class was renamed
+  * License: MIT
+
+### modules
+
+- `curl_hostcheck.{c,h}`
+  * Upstream: https://curl.haxx.se/
+  * Version: ? (2013)
+  * License: MIT
+- `yuv2rgb.h`
+  * Upstream: http://wss.co.uk/pinknoise/yuv2rgb/ (to check)
+  * Version: ?
+  * License: BSD
+
+### scene
+
+- `mikktspace.{c,h}`
+  * Upstream: https://wiki.blender.org/index.php/Dev:Shading/Tangent_Space_Normal_Maps
+  * Version: 1.0
+  * License: zlib
+- `stb_truetype.h`
+  * Upstream: https://github.com/nothings/stb
+  * Version: 1.11
+  * License: Public Domain (Unlicense) or MIT
+
+
 ## openssl
 
 - Upstream: https://www.openssl.org
@@ -129,13 +213,29 @@ changes are marked with `// -- GODOT --` comments.
 
 Files extracted from the upstream source:
 
-TODO.
+- Our `openssl/`: contains the headers installed in /usr/include/openssl;
+  gather them in the source tarball with `make links` and
+  `cp -f include/openssl/*.h ../openssl/openssl/`
+- Our `crypto/`: copy of upstream `crypto/`, with some cleanup (see below).
+- Our `ssl/`: copy of upstream `ssl/`, with some cleanup (see below).
+- Cleanup:
+  ```
+  find \( -name "Makefile" -o -name "*.S" -o -name "*.bat" -o -name "*.bc" \
+    -o -name "*.com" -o -name "*.cnf" -o -name "*.ec" -o -name "*.fre" \
+    -o -name "*.gcc" -o -name "*.in" -o -name "*.lnx" -o -name "*.m4" \
+    -o -name "*.pl" -o -name "*.pod" -o -name "*.s" -o -name "*.sh" \
+    -o -name "*.sol" -o -name "*test*" \) -delete
+  cd openssl; for file in *.h; do find ../{crypto,ssl} -name "$file" -delete; done
+  ```
+  For the rest check the `git status` and decide.
+- e_os.h
+- Apply the Godot-specific patches in the `patches/` folder.
 
 
 ## opus
 
 - Upstream: https://opus-codec.org
-- Version: 1.1.4 (opus) and 0.8 (opusfile)
+- Version: 1.1.5 (opus) and 0.8 (opusfile)
 - License: BSD-3-Clause
 
 Files extracted from upstream source:

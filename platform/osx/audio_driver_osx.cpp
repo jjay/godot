@@ -31,11 +31,15 @@
 
 #include "audio_driver_osx.h"
 
-Error AudioDriverOSX::init() {
+static OSStatus outputDeviceAddressCB(AudioObjectID inObjectID, UInt32 inNumberAddresses, const AudioObjectPropertyAddress *inAddresses, void *__nullable inClientData) {
+	AudioDriverOSX *driver = (AudioDriverOSX *)inClientData;
 
-	active = false;
-	channels = 2;
+	driver->reopen();
 
+	return noErr;
+}
+
+Error AudioDriverOSX::initDevice() {
 	AudioStreamBasicDescription strdesc;
 	strdesc.mFormatID = kAudioFormatLinearPCM;
 	strdesc.mFormatFlags = kLinearPCMFormatFlagIsSignedInteger | kLinearPCMFormatFlagIsPacked;
@@ -43,12 +47,10 @@ Error AudioDriverOSX::init() {
 	strdesc.mSampleRate = 44100;
 	strdesc.mFramesPerPacket = 1;
 	strdesc.mBitsPerChannel = 16;
-	strdesc.mBytesPerFrame =
-			strdesc.mBitsPerChannel * strdesc.mChannelsPerFrame / 8;
-	strdesc.mBytesPerPacket =
-			strdesc.mBytesPerFrame * strdesc.mFramesPerPacket;
+	strdesc.mBytesPerFrame = strdesc.mBitsPerChannel * strdesc.mChannelsPerFrame / 8;
+	strdesc.mBytesPerPacket = strdesc.mBytesPerFrame * strdesc.mFramesPerPacket;
 
-	OSStatus result = noErr;
+	OSStatus result;
 	AURenderCallbackStruct callback;
 	AudioComponentDescription desc;
 	AudioComponent comp = NULL;
@@ -58,39 +60,99 @@ Error AudioDriverOSX::init() {
 
 	zeromem(&desc, sizeof(desc));
 	desc.componentType = kAudioUnitType_Output;
-	desc.componentSubType = 0; /* !!! FIXME: ? */
-	comp = AudioComponentFindNext(NULL, &desc);
+	desc.componentSubType = kAudioUnitSubType_HALOutput;
 	desc.componentManufacturer = kAudioUnitManufacturer_Apple;
+
+	comp = AudioComponentFindNext(NULL, &desc);
+	ERR_FAIL_COND_V(comp == NULL, FAILED);
 
 	result = AudioComponentInstanceNew(comp, &audio_unit);
 	ERR_FAIL_COND_V(result != noErr, FAILED);
-	ERR_FAIL_COND_V(comp == NULL, FAILED);
 
-	result = AudioUnitSetProperty(audio_unit,
-			kAudioUnitProperty_StreamFormat,
-			scope, bus, &strdesc, sizeof(strdesc));
+	result = AudioUnitSetProperty(audio_unit, kAudioUnitProperty_StreamFormat, scope, bus, &strdesc, sizeof(strdesc));
 	ERR_FAIL_COND_V(result != noErr, FAILED);
 
 	zeromem(&callback, sizeof(AURenderCallbackStruct));
 	callback.inputProc = &AudioDriverOSX::output_callback;
 	callback.inputProcRefCon = this;
-	result = AudioUnitSetProperty(audio_unit,
-			kAudioUnitProperty_SetRenderCallback,
-			scope, bus, &callback, sizeof(callback));
+	result = AudioUnitSetProperty(audio_unit, kAudioUnitProperty_SetRenderCallback, scope, bus, &callback, sizeof(callback));
 	ERR_FAIL_COND_V(result != noErr, FAILED);
 
 	result = AudioUnitInitialize(audio_unit);
 	ERR_FAIL_COND_V(result != noErr, FAILED);
 
-	result = AudioOutputUnitStart(audio_unit);
+	return OK;
+}
+
+Error AudioDriverOSX::finishDevice() {
+	OSStatus result;
+
+	if (active) {
+		result = AudioOutputUnitStop(audio_unit);
+		ERR_FAIL_COND_V(result != noErr, FAILED);
+
+		active = false;
+	}
+
+	result = AudioUnitUninitialize(audio_unit);
+	ERR_FAIL_COND_V(result != noErr, FAILED);
+
+	return OK;
+}
+
+Error AudioDriverOSX::init() {
+	OSStatus result;
+
+	mutex = Mutex::create();
+	active = false;
+	channels = 2;
+
+	outputDeviceAddress.mSelector = kAudioHardwarePropertyDefaultOutputDevice;
+	outputDeviceAddress.mScope = kAudioObjectPropertyScopeGlobal;
+	outputDeviceAddress.mElement = kAudioObjectPropertyElementMaster;
+
+	result = AudioObjectAddPropertyListener(kAudioObjectSystemObject, &outputDeviceAddress, &outputDeviceAddressCB, this);
 	ERR_FAIL_COND_V(result != noErr, FAILED);
 
 	const int samples = 1024;
 	samples_in = memnew_arr(int32_t, samples); // whatever
 	buffer_frames = samples / channels;
 
-	return OK;
+	return initDevice();
 };
+
+Error AudioDriverOSX::reopen() {
+	Error err;
+	bool restart = false;
+
+	lock();
+
+	if (active) {
+		restart = true;
+	}
+
+	err = finishDevice();
+	if (err != OK) {
+		ERR_PRINT("finishDevice failed");
+		unlock();
+		return err;
+	}
+
+	err = initDevice();
+	if (err != OK) {
+		ERR_PRINT("initDevice failed");
+		unlock();
+		return err;
+	}
+
+	if (restart) {
+		start();
+	}
+
+	unlock();
+
+	return OK;
+}
 
 OSStatus AudioDriverOSX::output_callback(void *inRefCon,
 		AudioUnitRenderActionFlags *ioActionFlags,
@@ -98,43 +160,30 @@ OSStatus AudioDriverOSX::output_callback(void *inRefCon,
 		UInt32 inBusNumber, UInt32 inNumberFrames,
 		AudioBufferList *ioData) {
 
-	AudioBuffer *abuf;
 	AudioDriverOSX *ad = (AudioDriverOSX *)inRefCon;
 
-	bool mix = true;
-
-	if (!ad->active)
-		mix = false;
-	else if (ad->mutex) {
-		mix = ad->mutex->try_lock() == OK;
-	};
-
-	if (!mix) {
+	if (!ad->active || !ad->try_lock()) {
 		for (unsigned int i = 0; i < ioData->mNumberBuffers; i++) {
-			abuf = &ioData->mBuffers[i];
+			AudioBuffer *abuf = &ioData->mBuffers[i];
 			zeromem(abuf->mData, abuf->mDataByteSize);
 		};
 		return 0;
 	};
 
-	int frames_left;
-
 	for (unsigned int i = 0; i < ioData->mNumberBuffers; i++) {
 
-		abuf = &ioData->mBuffers[i];
-		frames_left = inNumberFrames;
+		AudioBuffer *abuf = &ioData->mBuffers[i];
+		int frames_left = inNumberFrames;
 		int16_t *out = (int16_t *)abuf->mData;
 
 		while (frames_left) {
 
 			int frames = MIN(frames_left, ad->buffer_frames);
-			//ad->lock();
 			ad->audio_server_process(frames, ad->samples_in);
-			//ad->unlock();
 
-			for (int i = 0; i < frames * ad->channels; i++) {
+			for (int j = 0; j < frames * ad->channels; j++) {
 
-				out[i] = ad->samples_in[i] >> 16;
+				out[j] = ad->samples_in[j] >> 16;
 			}
 
 			frames_left -= frames;
@@ -142,14 +191,20 @@ OSStatus AudioDriverOSX::output_callback(void *inRefCon,
 		};
 	};
 
-	if (ad->mutex)
-		ad->mutex->unlock();
+	ad->unlock();
 
 	return 0;
 };
 
 void AudioDriverOSX::start() {
-	active = true;
+	if (!active) {
+		OSStatus result = AudioOutputUnitStart(audio_unit);
+		if (result != noErr) {
+			ERR_PRINT("AudioOutputUnitStart failed");
+		} else {
+			active = true;
+		}
+	}
 };
 
 int AudioDriverOSX::get_mix_rate() const {
@@ -161,29 +216,47 @@ AudioDriverSW::OutputFormat AudioDriverOSX::get_output_format() const {
 };
 
 void AudioDriverOSX::lock() {
-	if (active && mutex)
+	if (mutex)
 		mutex->lock();
 };
+
 void AudioDriverOSX::unlock() {
-	if (active && mutex)
+	if (mutex)
 		mutex->unlock();
 };
 
+bool AudioDriverOSX::try_lock() {
+	if (mutex)
+		return mutex->try_lock() == OK;
+	return true;
+}
+
 void AudioDriverOSX::finish() {
+	OSStatus result;
 
-	if (active)
-		AudioOutputUnitStop(audio_unit);
+	finishDevice();
 
-	memdelete_arr(samples_in);
+	result = AudioObjectRemovePropertyListener(kAudioObjectSystemObject, &outputDeviceAddress, &outputDeviceAddressCB, this);
+	if (result != noErr) {
+		ERR_PRINT("AudioObjectRemovePropertyListener failed");
+	}
+
+	if (mutex) {
+		memdelete(mutex);
+		mutex = NULL;
+	}
+
+	if (samples_in) {
+		memdelete_arr(samples_in);
+		samples_in = NULL;
+	}
 };
 
 AudioDriverOSX::AudioDriverOSX() {
-
-	mutex = Mutex::create(); //NULL;
+	mutex = NULL;
+	samples_in = NULL;
 };
 
-AudioDriverOSX::~AudioDriverOSX(){
-
-};
+AudioDriverOSX::~AudioDriverOSX(){};
 
 #endif

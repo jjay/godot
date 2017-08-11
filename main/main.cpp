@@ -562,10 +562,11 @@ Error Main::setup(const char *execpath, int argc, char *argv[], bool p_second_ph
 	if (debug_mode == "remote") {
 
 		ScriptDebuggerRemote *sdr = memnew(ScriptDebuggerRemote);
-		uint16_t debug_port = GLOBAL_DEF("debug/remote_port", 6007);
+		uint16_t debug_port = 6096;
 		if (debug_host.find(":") != -1) {
-			debug_port = debug_host.get_slicec(':', 1).to_int();
-			debug_host = debug_host.get_slicec(':', 0);
+			int sep_pos = debug_host.find_last(":");
+			debug_port = debug_host.substr(sep_pos + 1, debug_host.length()).to_int();
+			debug_host = debug_host.substr(0, sep_pos);
 		}
 		Error derr = sdr->connect_to_host(debug_host, debug_port);
 
@@ -671,7 +672,7 @@ Error Main::setup(const char *execpath, int argc, char *argv[], bool p_second_ph
 		video_mode.width = globals->get("display/width");
 	if (!force_res && use_custom_res && globals->has("display/height"))
 		video_mode.height = globals->get("display/height");
-	if (!editor && (!bool(globals->get("display/allow_hidpi")) || force_lowdpi)) {
+	if (!editor && ((globals->has("display/allow_hidpi") && !globals->get("display/allow_hidpi")) || force_lowdpi)) {
 		OS::get_singleton()->_allow_hidpi = false;
 	}
 	if (use_custom_res && globals->has("display/fullscreen"))
@@ -1406,6 +1407,7 @@ bool Main::start() {
 
 				String iconpath = GLOBAL_DEF("application/icon", "Variant()");
 				if (iconpath != "") {
+					iconpath = PathRemap::get_singleton()->get_remap(iconpath);
 					Image icon;
 					if (icon.load(iconpath) == OK)
 						OS::get_singleton()->set_icon(icon);

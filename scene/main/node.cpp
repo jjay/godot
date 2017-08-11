@@ -274,6 +274,11 @@ void Node::move_child(Node *p_child, int p_pos) {
 		ERR_FAIL_COND(data.blocked > 0);
 	}
 
+	// Specifying one place beyond the end
+	// means the same as moving to the last position
+	if (p_pos == data.children.size())
+		p_pos--;
+
 	data.children.remove(p_child->data.pos);
 	data.children.insert(p_pos, p_child);
 
@@ -382,7 +387,7 @@ Node::PauseMode Node::get_pause_mode() const {
 
 void Node::_propagate_pause_owner(Node *p_owner) {
 
-	if (data.pause_mode != PAUSE_MODE_INHERIT)
+	if (this != p_owner && data.pause_mode != PAUSE_MODE_INHERIT)
 		return;
 	data.pause_owner = p_owner;
 	for (int i = 0; i < data.children.size(); i++) {

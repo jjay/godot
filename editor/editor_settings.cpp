@@ -45,7 +45,7 @@
 #include "scene/main/node.h"
 #include "scene/main/scene_main_loop.h"
 #include "scene/main/viewport.h"
-#include "translations.h"
+#include "translations.gen.h"
 #include "version.h"
 
 Ref<EditorSettings> EditorSettings::singleton = NULL;
@@ -412,13 +412,12 @@ void EditorSettings::setup_network() {
 	IP::get_singleton()->get_local_addresses(&local_ip);
 	String lip;
 	String hint;
-	String current = get("network/debug_host");
+	String current = has("network/debug_host") ? get("network/debug_host") : "";
+	int port = has("network/debug_port") ? (int)get("network/debug_port") : 6096;
 
 	for (List<IP_Address>::Element *E = local_ip.front(); E; E = E->next()) {
 
 		String ip = E->get();
-		if (ip == "127.0.0.1")
-			continue;
 
 		if (lip == "")
 			lip = ip;
@@ -431,6 +430,9 @@ void EditorSettings::setup_network() {
 
 	set("network/debug_host", lip);
 	add_property_hint(PropertyInfo(Variant::STRING, "network/debug_host", PROPERTY_HINT_ENUM, hint));
+
+	set("network/debug_port", port);
+	add_property_hint(PropertyInfo(Variant::INT, "network/debug_port", PROPERTY_HINT_RANGE, "1,65535,1"));
 }
 
 void EditorSettings::save() {
@@ -567,7 +569,7 @@ void EditorSettings::_load_defaults(Ref<ConfigFile> p_extra_config) {
 	set("3d_editor/grid_color", Color(0, 1, 0, 0.2));
 	hints["3d_editor/grid_color"] = PropertyInfo(Variant::COLOR, "3d_editor/grid_color", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_RESTART_IF_CHANGED);
 
-	set("3d_editor/default_fov", 45.0);
+	set("3d_editor/default_fov", 55.0);
 	set("3d_editor/default_z_near", 0.1);
 	set("3d_editor/default_z_far", 500.0);
 
@@ -594,8 +596,10 @@ void EditorSettings::_load_defaults(Ref<ConfigFile> p_extra_config) {
 	set("2d_editor/keep_margins_when_changing_anchors", false);
 
 	set("2d_editor/warped_mouse_panning", true);
+	set("2d_editor/scroll_to_pan", false);
+	set("2d_editor/pan_speed", 20);
 
-	set("game_window_placement/rect", 0);
+	set("game_window_placement/rect", 1);
 	hints["game_window_placement/rect"] = PropertyInfo(Variant::INT, "game_window_placement/rect", PROPERTY_HINT_ENUM, "Default,Centered,Custom Position,Force Maximized,Force Full Screen");
 	String screen_hints = TTR("Default (Same as Editor)");
 	for (int i = 0; i < OS::get_singleton()->get_screen_count(); i++) {
@@ -698,7 +702,7 @@ void EditorSettings::_load_default_text_editor_theme() {
 	set("text_editor/string_color", Color::html("ef6ebe"));
 	set("text_editor/number_color", Color::html("EB9532"));
 	set("text_editor/symbol_color", Color::html("badfff"));
-	set("text_editor/selection_color", Color::html("7b5dbe"));
+	set("text_editor/selection_color", Color::html("6ca9c2"));
 	set("text_editor/brace_mismatch_color", Color(1, 0.2, 0.2));
 	set("text_editor/current_line_color", Color(0.3, 0.5, 0.8, 0.15));
 	set("text_editor/line_length_guideline_color", Color(0.3, 0.5, 0.8, 0.1));

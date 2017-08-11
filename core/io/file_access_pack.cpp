@@ -398,6 +398,8 @@ Error DirAccessPack::change_dir(String p_dir) {
 
 	nd = nd.simplify_path();
 
+	if (nd == "") nd = ".";
+
 	if (nd.begins_with("/")) {
 		nd = nd.replace_first("/", "");
 		absolute = true;
@@ -438,13 +440,12 @@ Error DirAccessPack::change_dir(String p_dir) {
 
 String DirAccessPack::get_current_dir() {
 
-	String p;
 	PackedData::PackedDir *pd = current;
-	while (pd->parent) {
+	String p = current->name;
 
-		if (pd != current)
-			p = "/" + p;
-		p = p + pd->name;
+	while (pd->parent) {
+		pd = pd->parent;
+		p = pd->name + "/" + p;
 	}
 
 	return "res://" + p;

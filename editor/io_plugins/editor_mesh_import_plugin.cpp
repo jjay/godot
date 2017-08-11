@@ -512,13 +512,13 @@ Error EditorMeshImportPlugin::import(const String &p_path, const Ref<ResourceImp
 					surf_tool->add_smooth_group(true);
 
 				has_index_data = false;
-
-				if (f->eof_reached())
-					break;
 			}
 
 			if (l.begins_with("o ")) //name
 				name = l.substr(2, l.length()).strip_edges();
+
+			if (f->eof_reached())
+				break;
 		}
 	}
 

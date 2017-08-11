@@ -338,6 +338,24 @@ void OSIPhone::update_gyroscope(float p_x, float p_y, float p_z) {
 	input->set_gyroscope(Vector3(p_x, p_y, p_z));
 };
 
+int OSIPhone::get_unused_joy_id() {
+	return input->get_unused_joy_id();
+};
+
+void OSIPhone::joy_connection_changed(int p_idx, bool p_connected, String p_name) {
+	input->joy_connection_changed(p_idx, p_connected, p_name);
+};
+
+void OSIPhone::joy_button(int p_device, int p_button, bool p_pressed) {
+	// p_last_id is being retired..
+	uint32_t last_id = input->joy_button(0, p_device, p_button, p_pressed);
+};
+
+void OSIPhone::joy_axis(int p_device, int p_axis, const InputDefault::JoyAxis &p_value) {
+	// p_last_id is being retired..
+	uint32_t last_id = input->joy_axis(0, p_device, p_axis, p_value);
+};
+
 void OSIPhone::delete_main_loop() {
 
 	if (main_loop) {
@@ -391,6 +409,13 @@ int OSIPhone::get_mouse_button_state() const {
 };
 
 void OSIPhone::set_window_title(const String &p_title){};
+
+void OSIPhone::alert(const String &p_alert, const String &p_title) {
+
+	const CharString utf8_alert = p_alert.utf8();
+	const CharString utf8_title = p_title.utf8();
+	iOS::alert(utf8_alert.get_data(), utf8_title.get_data());
+}
 
 void OSIPhone::set_video_mode(const VideoMode &p_video_mode, int p_screen) {
 

@@ -109,7 +109,7 @@ private:
 
 		Vector2 pos;
 		List<RID> canvas_items;
-		RID body;
+		Vector<RID> bodies;
 
 		SelfList<Quadrant> dirty_list;
 
@@ -131,7 +131,7 @@ private:
 		void operator=(const Quadrant &q) {
 			pos = q.pos;
 			canvas_items = q.canvas_items;
-			body = q.body;
+			bodies = q.bodies;
 			cells = q.cells;
 			navpoly_ids = q.navpoly_ids;
 			occluder_instances = q.occluder_instances;
@@ -140,7 +140,7 @@ private:
 			: dirty_list(this) {
 			pos = q.pos;
 			canvas_items = q.canvas_items;
-			body = q.body;
+			bodies = q.bodies;
 			cells = q.cells;
 			occluder_instances = q.occluder_instances;
 			navpoly_ids = q.navpoly_ids;
@@ -233,6 +233,12 @@ public:
 	void set_collision_mask(uint32_t p_mask);
 	uint32_t get_collision_mask() const;
 
+	void set_collision_layer_bit(int p_bit, bool p_value);
+	bool get_collision_layer_bit(int p_bit) const;
+
+	void set_collision_mask_bit(int p_bit, bool p_value);
+	bool get_collision_mask_bit(int p_bit) const;
+
 	void set_collision_use_kinematic(bool p_use_kinematic);
 	bool get_collision_use_kinematic() const;
 
@@ -264,6 +270,7 @@ public:
 	bool is_y_sort_mode_enabled() const;
 
 	Array get_used_cells() const;
+	Array get_used_cells_by_id(int p_id) const;
 	Rect2 get_used_rect(); // Not const because of cache
 
 	void set_occluder_light_mask(int p_mask);

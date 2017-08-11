@@ -1,4 +1,3 @@
-
 #!/usr/bin/env python
 
 EnsureSConsVersion(0, 14)
@@ -63,7 +62,7 @@ platform_arg = ARGUMENTS.get("platform", ARGUMENTS.get("p", False))
 if (os.name == "posix"):
     pass
 elif (os.name == "nt"):
-    if (os.getenv("VSINSTALLDIR") == None or platform_arg == "android"):
+    if (os.getenv("VCINSTALLDIR") == None or platform_arg == "android" or platform_arg == "javascript"):
         custom_tools = ['mingw']
 
 env_base = Environment(tools=custom_tools)
@@ -143,9 +142,11 @@ opts.Add('disable_3d', "Disable 3D nodes for smaller executable (yes/no)", 'no')
 opts.Add('disable_advanced_gui', "Disable advance 3D gui nodes and behaviors (yes/no)", 'no')
 opts.Add('extra_suffix', "Custom extra suffix added to the base filename of all generated binary files", '')
 opts.Add('unix_global_settings_path', "UNIX-specific path to system-wide settings. Currently only used for templates", '')
-opts.Add('verbose', "Enable verbose output for the compilation (yes/no)", 'yes')
+opts.Add('verbose', "Enable verbose output for the compilation (yes/no)", 'no')
 opts.Add('vsproj', "Generate Visual Studio Project. (yes/no)", 'no')
-opts.Add('warnings', "Enable showing warnings during the compilation (yes/no)", 'yes')
+opts.Add('warnings', "Set the level of warnings emitted during compilation (extra/all/moderate/no)", 'no')
+opts.Add('progress', "Show a progress indicator during build (yes/no)", 'yes')
+opts.Add('dev', "If yes, alias for verbose=yes warnings=all", 'no')
 
 # Thirdparty libraries
 opts.Add('builtin_freetype', "Use the builtin freetype library (yes/no)", 'yes')
@@ -171,7 +172,6 @@ opts.Add("CC", "C compiler")
 opts.Add("CCFLAGS", "Custom flags for the C and C++ compilers")
 opts.Add("CFLAGS", "Custom flags for the C compiler")
 opts.Add("LINKFLAGS", "Custom flags for the linker")
-
 
 # add platform specific options
 
@@ -229,6 +229,10 @@ if selected_platform in platform_list:
     else:
         env = env_base.Clone()
 
+    if (env["dev"] == "yes"):
+        env["warnings"] = "all"
+        env["verbose"] = "yes"
+
     if env['vsproj'] == "yes":
         env.vs_incs = []
         env.vs_srcs = []
@@ -276,16 +280,36 @@ if selected_platform in platform_list:
     # must happen after the flags, so when flags are used by configure, stuff happens (ie, ssl on x11)
     detect.configure(env)
 
-    # TODO: Add support to specify different levels of warning, e.g. only critical/significant, instead of on/off
-    if (env["warnings"] == "yes"):
-        if (os.name == "nt" and os.getenv("VSINSTALLDIR")): # MSVC, needs to stand out of course
-            env.Append(CCFLAGS=['/W4'])
-        else: # Rest of the world
-            env.Append(CCFLAGS=['-Wall'])
-    else:
-        if (os.name == "nt" and os.getenv("VSINSTALLDIR")): # MSVC
+    if (env["warnings"] == 'yes'):
+        print("WARNING: warnings=yes is deprecated; assuming warnings=all")
+
+    if (os.name == "nt" and os.getenv("VCINSTALLDIR") and (platform_arg == "windows" or platform_arg == "uwp")): # MSVC, needs to stand out of course
+        # This is an ugly hack.  It's possible (and common in the case of having older versions of MSVC installed)
+        # to have MSVC installed but not Visual Studio itself.  If this happens the environment variable
+        # "VSINSTALLDIR" is never set as Visual Studio isn't installed.  However, near as I can figure out,
+        # internally scons uses the "VSINSTALLDIR" environment variable for something so it needs to be set.
+        # So we set it to the same directory as MSVC itself.  It's an ugly hack but it works without side effects.
+        if os.getenv("VSINSTALLDIR") is None:
+            os.environ["VSINSTALLDIR"] = os.getenv("VCINSTALLDIR")
+
+        disable_nonessential_warnings = ['/wd4267', '/wd4244', '/wd4305', '/wd4800'] # Truncations, narrowing conversions...
+        if (env["warnings"] == 'extra'):
+            env.Append(CCFLAGS=['/Wall']) # Implies /W4
+        elif (env["warnings"] == 'all' or env["warnings"] == 'yes'):
+            env.Append(CCFLAGS=['/W3'] + disable_nonessential_warnings)
+        elif (env["warnings"] == 'moderate'):
+            # C4244 shouldn't be needed here being a level-3 warning, but it is
+            env.Append(CCFLAGS=['/W2'] + disable_nonessential_warnings)
+        else: # 'no'
             env.Append(CCFLAGS=['/w'])
-        else: # Rest of the world
+    else: # Rest of the world
+        if (env["warnings"] == 'extra'):
+            env.Append(CCFLAGS=['-Wall', '-Wextra'])
+        elif (env["warnings"] == 'all' or env["warnings"] == 'yes'):
+            env.Append(CCFLAGS=['-Wall'])
+        elif (env["warnings"] == 'moderate'):
+            env.Append(CCFLAGS=['-Wall', '-Wno-unused'])
+        else: # 'no'
             env.Append(CCFLAGS=['-w'])
 
     #env['platform_libsuffix'] = env['LIBSUFFIX']
@@ -431,3 +455,41 @@ else:
     for x in platform_list:
         print("\t" + x)
     print("\nPlease run scons again with argument: platform=<string>")
+
+
+screen = sys.stdout
+node_count = 0
+node_count_max = 0
+node_count_interval = 1
+if ('env' in locals()):
+    node_count_fname = str(env.Dir('#')) + '/.scons_node_count'
+
+def progress_function(node):
+    global node_count, node_count_max, node_count_interval, node_count_fname
+    node_count += node_count_interval
+    if (node_count_max > 0 and node_count <= node_count_max):
+        screen.write('\r[%3d%%] ' % (node_count * 100 / node_count_max))
+        screen.flush()
+    elif (node_count_max > 0 and node_count > node_count_max):
+        screen.write('\r[100%] ')
+        screen.flush()
+    else:
+        screen.write('\r[Initial build] ')
+        screen.flush()
+
+def progress_finish(target, source, env):
+    global node_count
+    with open(node_count_fname, 'w') as f:
+        f.write('%d\n' % node_count)
+
+if ('env' in locals() and env["progress"] == "yes"):
+    try:
+        with open(node_count_fname) as f:
+            node_count_max = int(f.readline())
+    except:
+        pass
+    Progress(progress_function, interval = node_count_interval)
+    progress_finish_command = Command('progress_finish', [], progress_finish)
+    AlwaysBuild(progress_finish_command)
+
+

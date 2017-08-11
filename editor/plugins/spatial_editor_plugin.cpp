@@ -595,7 +595,7 @@ bool SpatialEditorViewport::_gizmo_select(const Vector2 &p_screenpos, bool p_hil
 		return false;
 	if (get_selected_count() == 0) {
 		if (p_hilite_only)
-			spatial_editor->select_gizmo_hilight_axis(-1);
+			spatial_editor->select_gizmo_highlight_axis(-1);
 		return false;
 	}
 
@@ -629,7 +629,7 @@ bool SpatialEditorViewport::_gizmo_select(const Vector2 &p_screenpos, bool p_hil
 
 			if (p_hilite_only) {
 
-				spatial_editor->select_gizmo_hilight_axis(col_axis);
+				spatial_editor->select_gizmo_highlight_axis(col_axis);
 
 			} else {
 				//handle rotate
@@ -669,7 +669,7 @@ bool SpatialEditorViewport::_gizmo_select(const Vector2 &p_screenpos, bool p_hil
 
 			if (p_hilite_only) {
 
-				spatial_editor->select_gizmo_hilight_axis(col_axis + 3);
+				spatial_editor->select_gizmo_highlight_axis(col_axis + 3);
 			} else {
 				//handle rotate
 				_edit.mode = TRANSFORM_ROTATE;
@@ -681,7 +681,7 @@ bool SpatialEditorViewport::_gizmo_select(const Vector2 &p_screenpos, bool p_hil
 	}
 
 	if (p_hilite_only)
-		spatial_editor->select_gizmo_hilight_axis(-1);
+		spatial_editor->select_gizmo_highlight_axis(-1);
 
 	return false;
 }
@@ -1140,7 +1140,7 @@ void SpatialEditorViewport::_sinput(const InputEvent &p_event) {
 						spatial_editor->set_over_gizmo_handle(selected_handle);
 						spatial_editor->get_selected()->update_gizmo();
 						if (selected_handle != -1)
-							spatial_editor->select_gizmo_hilight_axis(-1);
+							spatial_editor->select_gizmo_highlight_axis(-1);
 					}
 				}
 			}
@@ -2271,7 +2271,7 @@ SpatialEditorSelectedItem::~SpatialEditorSelectedItem() {
 		VisualServer::get_singleton()->free(sbox_instance);
 }
 
-void SpatialEditor::select_gizmo_hilight_axis(int p_axis) {
+void SpatialEditor::select_gizmo_highlight_axis(int p_axis) {
 
 	for (int i = 0; i < 3; i++) {
 
@@ -3442,7 +3442,7 @@ void SpatialEditor::_bind_methods() {
 
 void SpatialEditor::clear() {
 
-	settings_fov->set_val(EDITOR_DEF("3d_editor/default_fov", 60.0));
+	settings_fov->set_val(EDITOR_DEF("3d_editor/default_fov", 55.0));
 	settings_znear->set_val(EDITOR_DEF("3d_editor/default_z_near", 0.1));
 	settings_zfar->set_val(EDITOR_DEF("3d_editor/default_z_far", 1500.0));
 
@@ -3742,7 +3742,7 @@ SpatialEditor::SpatialEditor(EditorNode *p_editor) {
 	settings_fov->set_max(179);
 	settings_fov->set_min(1);
 	settings_fov->set_step(0.01);
-	settings_fov->set_val(EDITOR_DEF("3d_editor/default_fov", 60.0));
+	settings_fov->set_val(EDITOR_DEF("3d_editor/default_fov", 55.0));
 	settings_vbc->add_margin_child(TTR("Perspective FOV (deg.):"), settings_fov);
 
 	settings_znear = memnew(SpinBox);

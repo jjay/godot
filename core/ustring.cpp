@@ -29,13 +29,15 @@
 /*************************************************************************/
 #include "ustring.h"
 #include "color.h"
-#include "io/md5.h"
-#include "io/sha256.h"
 #include "math_funcs.h"
 #include "os/memory.h"
 #include "print_string.h"
 #include "ucaps.h"
 #include "variant.h"
+
+#include "thirdparty/misc/md5.h"
+#include "thirdparty/misc/sha256.h"
+
 #include <wchar.h>
 #define MAX_DIGITS 6
 #define UPPERCASE(m_c) (((m_c) >= 'a' && (m_c) <= 'z') ? ((m_c) - ('a' - 'A')) : (m_c))
@@ -62,6 +64,12 @@ const char *CharString::get_data() const {
 
 void String::copy_from(const char *p_cstr) {
 
+	if (!p_cstr) {
+
+		resize(0);
+		return;
+	}
+
 	int len = 0;
 	const char *ptr = p_cstr;
 	while (*(ptr++) != 0)
@@ -84,6 +92,12 @@ void String::copy_from(const char *p_cstr) {
 }
 
 void String::copy_from(const CharType *p_cstr, int p_clip_to) {
+
+	if (!p_cstr) {
+
+		resize(0);
+		return;
+	}
 
 	int len = 0;
 	const CharType *ptr = p_cstr;
@@ -482,14 +496,16 @@ String String::camelcase_to_underscore(bool lowercase) const {
 
 	for (size_t i = 1; i < this->size(); i++) {
 		bool is_upper = cstr[i] >= A && cstr[i] <= Z;
+		bool is_number = cstr[i] >= '0' && cstr[i] <= '9';
 		bool are_next_2_lower = false;
 		bool was_precedent_upper = cstr[i - 1] >= A && cstr[i - 1] <= Z;
+		bool was_precedent_number = cstr[i - 1] >= '0' && cstr[i - 1] <= '9';
 
 		if (i + 2 < this->size()) {
 			are_next_2_lower = cstr[i + 1] >= a && cstr[i + 1] <= z && cstr[i + 2] >= a && cstr[i + 2] <= z;
 		}
 
-		bool should_split = ((is_upper && !was_precedent_upper) || (was_precedent_upper && is_upper && are_next_2_lower));
+		bool should_split = ((is_upper && !was_precedent_upper && !was_precedent_number) || (was_precedent_upper && is_upper && are_next_2_lower) || (is_number && !was_precedent_number));
 		if (should_split) {
 			new_string += this->substr(start_index, i - start_index) + "_";
 			start_index = i;
@@ -2770,6 +2786,78 @@ bool String::matchn(const String &p_wildcard) const {
 	if (!p_wildcard.length() || !length())
 		return false;
 	return _wildcard_match(p_wildcard.c_str(), c_str(), false);
+}
+
+String String::format(const Variant &values, String placeholder) const {
+
+	String new_string = String(this->ptr());
+
+	if (values.get_type() == Variant::ARRAY) {
+		Array values_arr = values;
+
+		for (int i = 0; i < values_arr.size(); i++) {
+			String i_as_str = String::num_int64(i);
+
+			if (values_arr[i].get_type() == Variant::ARRAY) { //Array in Array structure [["name","RobotGuy"],[0,"godot"],["strength",9000.91]]
+				Array value_arr = values_arr[i];
+
+				if (value_arr.size() == 2) {
+					Variant v_key = value_arr[0];
+					String key;
+
+					key = v_key.get_construct_string();
+					if (key.left(1) == "\"" && key.right(key.length() - 1) == "\"") {
+						key = key.substr(1, key.length() - 2);
+					}
+
+					Variant v_val = value_arr[1];
+					String val;
+					val = v_val.get_construct_string();
+
+					if (val.left(1) == "\"" && val.right(val.length() - 1) == "\"") {
+						val = val.substr(1, val.length() - 2);
+					}
+
+					new_string = new_string.replacen(placeholder.replace("_", key), val);
+				} else {
+					ERR_PRINT(String("STRING.format Inner Array size != 2 ").ascii().get_data());
+				}
+			} else { //Array structure ["RobotGuy","Logis","rookie"]
+				Variant v_val = values_arr[i];
+				String val;
+				val = v_val.get_construct_string();
+
+				if (val.left(1) == "\"" && val.right(val.length() - 1) == "\"") {
+					val = val.substr(1, val.length() - 2);
+				}
+
+				new_string = new_string.replacen(placeholder.replace("_", i_as_str), val);
+			}
+		}
+	} else if (values.get_type() == Variant::DICTIONARY) {
+		Dictionary d = values;
+		List<Variant> keys;
+		d.get_key_list(&keys);
+
+		for (List<Variant>::Element *E = keys.front(); E; E = E->next()) {
+			String key = E->get().get_construct_string();
+			String val = d[E->get()].get_construct_string();
+
+			if (key.left(1) == "\"" && key.right(key.length() - 1) == "\"") {
+				key = key.substr(1, key.length() - 2);
+			}
+
+			if (val.left(1) == "\"" && val.right(val.length() - 1) == "\"") {
+				val = val.substr(1, val.length() - 2);
+			}
+
+			new_string = new_string.replacen(placeholder.replace("_", key), val);
+		}
+	} else {
+		ERR_PRINT(String("Invalid type: use Array or Dictionary.").ascii().get_data());
+	}
+
+	return new_string;
 }
 
 String String::replace(String p_key, String p_with) const {

@@ -782,12 +782,14 @@ void RichTextLabel::_input_event(InputEvent p_event) {
 			if (b.button_index == BUTTON_WHEEL_UP) {
 
 				if (scroll_active)
-					vscroll->set_val(vscroll->get_val() - vscroll->get_page() / 8);
+
+					vscroll->set_val(vscroll->get_val() - vscroll->get_page() * b.factor * 0.5 / 8);
 			}
 			if (b.button_index == BUTTON_WHEEL_DOWN) {
 
 				if (scroll_active)
-					vscroll->set_val(vscroll->get_val() + vscroll->get_page() / 8);
+
+					vscroll->set_val(vscroll->get_val() + vscroll->get_page() * b.factor * 0.5 / 8);
 			}
 		} break;
 		case InputEvent::KEY: {
@@ -1827,16 +1829,41 @@ String RichTextLabel::get_text() {
 	return text;
 }
 
+void RichTextLabel::set_text(const String &p_string) {
+	clear();
+	add_text(p_string);
+}
+
+void RichTextLabel::set_percent_visible(float p_percent) {
+
+	if (p_percent < 0 || p_percent >= 1) {
+
+		visible_characters = -1;
+		percent_visible = 1;
+
+	} else {
+
+		visible_characters = get_total_character_count() * p_percent;
+		percent_visible = p_percent;
+	}
+	update();
+}
+
+float RichTextLabel::get_percent_visible() const {
+	return percent_visible;
+}
+
 void RichTextLabel::_bind_methods() {
 
 	ObjectTypeDB::bind_method(_MD("_input_event"), &RichTextLabel::_input_event);
 	ObjectTypeDB::bind_method(_MD("_scroll_changed"), &RichTextLabel::_scroll_changed);
 	ObjectTypeDB::bind_method(_MD("get_text"), &RichTextLabel::get_text);
 	ObjectTypeDB::bind_method(_MD("add_text", "text"), &RichTextLabel::add_text);
+	ObjectTypeDB::bind_method(_MD("set_text", "text"), &RichTextLabel::set_text);
 	ObjectTypeDB::bind_method(_MD("add_image", "image:Texture"), &RichTextLabel::add_image);
 	ObjectTypeDB::bind_method(_MD("newline"), &RichTextLabel::add_newline);
 	ObjectTypeDB::bind_method(_MD("remove_line"), &RichTextLabel::remove_line);
-	ObjectTypeDB::bind_method(_MD("push_font", "font"), &RichTextLabel::push_font);
+	ObjectTypeDB::bind_method(_MD("push_font", "font:Font"), &RichTextLabel::push_font);
 	ObjectTypeDB::bind_method(_MD("push_color", "color"), &RichTextLabel::push_color);
 	ObjectTypeDB::bind_method(_MD("push_align", "align"), &RichTextLabel::push_align);
 	ObjectTypeDB::bind_method(_MD("push_indent", "level"), &RichTextLabel::push_indent);
@@ -1859,7 +1886,7 @@ void RichTextLabel::_bind_methods() {
 	ObjectTypeDB::bind_method(_MD("set_scroll_follow", "follow"), &RichTextLabel::set_scroll_follow);
 	ObjectTypeDB::bind_method(_MD("is_scroll_following"), &RichTextLabel::is_scroll_following);
 
-	ObjectTypeDB::bind_method(_MD("get_v_scroll"), &RichTextLabel::get_v_scroll);
+	ObjectTypeDB::bind_method(_MD("get_v_scroll:VScrollBar"), &RichTextLabel::get_v_scroll);
 
 	ObjectTypeDB::bind_method(_MD("scroll_to_line", "line"), &RichTextLabel::scroll_to_line);
 
@@ -1878,6 +1905,9 @@ void RichTextLabel::_bind_methods() {
 	ObjectTypeDB::bind_method(_MD("set_visible_characters", "amount"), &RichTextLabel::set_visible_characters);
 	ObjectTypeDB::bind_method(_MD("get_visible_characters"), &RichTextLabel::get_visible_characters);
 
+	ObjectTypeDB::bind_method(_MD("set_percent_visible", "percent_visible"), &RichTextLabel::set_percent_visible);
+	ObjectTypeDB::bind_method(_MD("get_percent_visible"), &RichTextLabel::get_percent_visible);
+
 	ObjectTypeDB::bind_method(_MD("get_total_character_count"), &RichTextLabel::get_total_character_count);
 
 	ObjectTypeDB::bind_method(_MD("set_use_bbcode", "enable"), &RichTextLabel::set_use_bbcode);
@@ -1885,7 +1915,9 @@ void RichTextLabel::_bind_methods() {
 
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "bbcode/enabled"), _SCS("set_use_bbcode"), _SCS("is_using_bbcode"));
 	ADD_PROPERTY(PropertyInfo(Variant::STRING, "bbcode/bbcode", PROPERTY_HINT_MULTILINE_TEXT), _SCS("set_bbcode"), _SCS("get_bbcode"));
+
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "visible_characters", PROPERTY_HINT_RANGE, "-1,128000,1"), _SCS("set_visible_characters"), _SCS("get_visible_characters"));
+	ADD_PROPERTY(PropertyInfo(Variant::REAL, "percent_visible", PROPERTY_HINT_RANGE, "0,1,0.001"), _SCS("set_percent_visible"), _SCS("get_percent_visible"));
 
 	ADD_SIGNAL(MethodInfo("meta_clicked", PropertyInfo(Variant::NIL, "meta")));
 
@@ -1918,7 +1950,6 @@ void RichTextLabel::set_visible_characters(int p_visible) {
 }
 
 int RichTextLabel::get_visible_characters() const {
-
 	return visible_characters;
 }
 int RichTextLabel::get_total_character_count() const {
@@ -1968,9 +1999,9 @@ RichTextLabel::RichTextLabel() {
 	selection.enabled = false;
 
 	visible_characters = -1;
+	percent_visible = 1;
 }
 
 RichTextLabel::~RichTextLabel() {
-
 	memdelete(main);
 }

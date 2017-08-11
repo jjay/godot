@@ -35,24 +35,18 @@ void TileSetEditor::edit(const Ref<TileSet> &p_tileset) {
 	tileset = p_tileset;
 }
 
-void TileSetEditor::_import_scene(Node *scene, Ref<TileSet> p_library, bool p_merge) {
+void TileSetEditor::_import_node(Node *p_node, Ref<TileSet> p_library) {
 
-	if (!p_merge)
-		p_library->clear();
+	for (int i = 0; i < p_node->get_child_count(); i++) {
 
-	for (int i = 0; i < scene->get_child_count(); i++) {
-
-		Node *child = scene->get_child(i);
+		Node *child = p_node->get_child(i);
 
 		if (!child->cast_to<Sprite>()) {
 			if (child->get_child_count() > 0) {
-				child = child->get_child(0);
-				if (!child->cast_to<Sprite>()) {
-					continue;
-				}
+				_import_node(child, p_library);
+			}
 
-			} else
-				continue;
+			continue;
 		}
 
 		Sprite *mi = child->cast_to<Sprite>();
@@ -95,6 +89,9 @@ void TileSetEditor::_import_scene(Node *scene, Ref<TileSet> p_library, bool p_me
 		Vector<Ref<Shape2D> > collisions;
 		Ref<NavigationPolygon> nav_poly;
 		Ref<OccluderPolygon2D> occluder;
+		bool one_way_ok = true;
+		Variant one_way_dir;
+		float one_way_max_depth = 0.0f;
 
 		for (int j = 0; j < mi->get_child_count(); j++) {
 
@@ -118,12 +115,32 @@ void TileSetEditor::_import_scene(Node *scene, Ref<TileSet> p_library, bool p_me
 					collisions.push_back(collision);
 				}
 			}
+
+			phys_offset -= sb->get_pos();
+
+			if (one_way_ok) {
+				Vector2 curr_dir = sb->get_one_way_collision_direction();
+				float curr_max_depth = sb->get_one_way_collision_max_depth();
+				if (one_way_dir == Variant()) {
+					one_way_dir = curr_dir;
+					one_way_max_depth = curr_max_depth;
+				} else {
+					if (curr_dir != one_way_dir || curr_max_depth != one_way_max_depth) {
+						one_way_ok = false;
+						WARN_PRINT(String("Mismatch in one-way collision parameters for " + child->get_name()).utf8().get_data());
+					}
+				}
+			}
 		}
 
 		if (collisions.size()) {
 
 			p_library->tile_set_shapes(id, collisions);
 			p_library->tile_set_shape_offset(id, -phys_offset);
+			if (one_way_ok && one_way_dir != Variant()) {
+				p_library->tile_set_one_way_collision_direction(id, one_way_dir);
+				p_library->tile_set_one_way_collision_max_depth(id, one_way_max_depth);
+			}
 		} else {
 			p_library->tile_set_shape_offset(id, Vector2());
 		}
@@ -134,6 +151,13 @@ void TileSetEditor::_import_scene(Node *scene, Ref<TileSet> p_library, bool p_me
 		p_library->tile_set_occluder_offset(id, -phys_offset);
 		p_library->tile_set_navigation_polygon_offset(id, -phys_offset);
 	}
+}
+
+void TileSetEditor::_import_scene(Node *p_scene, Ref<TileSet> p_library, bool p_merge) {
+	if (!p_merge)
+		p_library->clear();
+
+	_import_node(p_scene, p_library);
 }
 
 void TileSetEditor::_menu_confirm() {

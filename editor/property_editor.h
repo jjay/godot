@@ -234,6 +234,9 @@ class PropertyEditor : public Control {
 	void drop_data_fw(const Point2 &p_point, const Variant &p_data, Control *p_from);
 
 	void _resource_preview_done(const String &p_path, const Ref<Texture> &p_preview, Variant p_ud);
+	void _draw_transparency(Object *t, const Rect2 &p_rect);
+
+	ObjectID _get_curent_remote_object_id(const StringName &p_name);
 
 	UndoRedo *undo_redo;
 
@@ -262,7 +265,8 @@ public:
 		custom_editor->set_read_only(p_read_only);
 	}
 
-	void set_capitalize_paths(bool p_capitalize);
+	bool is_capitalize_paths_enabled() const;
+	void set_enable_capitalize_paths(bool p_capitalize);
 	void set_autoclear(bool p_enable);
 
 	void set_show_categories(bool p_show);

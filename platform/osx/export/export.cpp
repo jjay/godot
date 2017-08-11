@@ -37,7 +37,7 @@
 #include "io/zip_io.h"
 #include "os/file_access.h"
 #include "os/os.h"
-#include "platform/osx/logo.h"
+#include "platform/osx/logo.gen.h"
 #include "string.h"
 #include "version.h"
 
@@ -261,8 +261,8 @@ void EditorExportPlatformOSX::_fix_plist(Vector<uint8_t> &plist, const String &p
 	}
 
 	CharString cs = strnew.utf8();
-	plist.resize(cs.size());
-	for (int i = 9; i < cs.size(); i++) {
+	plist.resize(cs.size() - 1);
+	for (int i = 0; i < cs.size() - 1; i++) {
 		plist[i] = cs[i];
 	}
 }

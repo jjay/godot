@@ -106,6 +106,11 @@ Size2 PopupMenu::get_minimum_size() const {
 			accel_max_w = MAX(accel_w, accel_max_w);
 		}
 
+		if (items[i].submenu != "") {
+
+			size.width += get_icon("submenu")->get_width();
+		}
+
 		minsize.height += size.height;
 		max_w = MAX(max_w, size.width);
 	}
@@ -271,7 +276,7 @@ void PopupMenu::_input_event(const InputEvent &p_event) {
 
 						Point2 pos = get_pos();
 						int s = (vseparation + font->get_height()) * 3;
-						pos.y -= s;
+						pos.y -= (s * b.factor);
 						set_pos(pos);
 
 						//update hover
@@ -291,7 +296,7 @@ void PopupMenu::_input_event(const InputEvent &p_event) {
 
 						Point2 pos = get_pos();
 						int s = (vseparation + font->get_height()) * 3;
-						pos.y += s;
+						pos.y += (s * b.factor);
 						set_pos(pos);
 
 						//update hover

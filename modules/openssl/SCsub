@@ -648,6 +648,9 @@ if (env['builtin_openssl'] != 'no'):
         "crypto/bn/bn_asm.c",
     ]
 
+    if "platform" in env and env["platform"] == "winrt":
+        thirdparty_sources += ['winrt.cpp']
+
     thirdparty_sources = [thirdparty_dir + file for file in thirdparty_sources]
 
     env_openssl.add_source_files(env.modules_sources, thirdparty_sources)
@@ -674,6 +677,15 @@ if (env['builtin_openssl'] != 'no'):
 
 # Module sources
 env_openssl.add_source_files(env.modules_sources, "*.cpp")
-env_openssl.add_source_files(env.modules_sources, "*.c")
+
+
+# Other thirdparty dependencies
+thirdparty_misc_dir = "#thirdparty/misc/"
+thirdparty_misc_sources = [
+	"curl_hostcheck.c",
+]
+thirdparty_misc_sources = [thirdparty_misc_dir + file for file in thirdparty_misc_sources]
+env_openssl.add_source_files(env.modules_sources, thirdparty_misc_sources)
+
 
 Export('env')

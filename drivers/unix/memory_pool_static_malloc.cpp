@@ -63,11 +63,11 @@ void *MemoryPoolStaticMalloc::alloc(size_t p_bytes, const char *p_description) {
 #endif
 };
 void *MemoryPoolStaticMalloc::_alloc(size_t p_bytes, const char *p_description) {
-	if (p_bytes == 0) return 0;
-	//ERR_FAIL_COND_V(p_bytes == 0, 0);
-	MutexLock lock(mutex);
+	ERR_FAIL_COND_V(p_bytes == 0, 0);
 
 #ifdef DEBUG_MEMORY_ENABLED
+
+	MutexLock lock(mutex);
 
 	size_t total;
 #if defined(_add_overflow)
@@ -174,9 +174,9 @@ void *MemoryPoolStaticMalloc::_realloc(void *p_memory, size_t p_bytes) {
 		return NULL;
 	}
 
-	MutexLock lock(mutex);
-
 #ifdef DEBUG_MEMORY_ENABLED
+
+	MutexLock lock(mutex);
 
 	RingPtr *ringptr = (RingPtr *)p_memory;
 	ringptr--; /* go back an element to find the tingptr */
@@ -238,9 +238,9 @@ void MemoryPoolStaticMalloc::free(void *p_ptr) {
 
 void MemoryPoolStaticMalloc::_free(void *p_ptr) {
 
-	MutexLock lock(mutex);
-
 #ifdef DEBUG_MEMORY_ENABLED
+
+	MutexLock lock(mutex);
 
 	if (p_ptr == 0) {
 		printf("**ERROR: STATIC ALLOC: Attempted free of NULL pointer.\n");
@@ -296,7 +296,7 @@ void MemoryPoolStaticMalloc::_free(void *p_ptr) {
 	total_mem -= ringptr->size;
 	total_pointers--;
 	// catch more errors
-	zeromem(ringptr, sizeof(RingPtr) + ringptr->size);
+	memset(ringptr, 0xEA, sizeof(RingPtr) + ringptr->size);
 	::free(ringptr); //just free that pointer
 
 #else
