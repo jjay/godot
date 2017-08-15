@@ -10,3 +10,6 @@
 [submodule "modules/facebook"]
 	path = modules/facebook
 	url = git@github.com:jjay/godot-facebook.git
+[submodule "modules/zendesk"]
+	path = modules/zendesk
+	url = git@github.com:jjay/godot-zendesk.git
