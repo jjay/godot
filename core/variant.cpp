@@ -1107,6 +1107,7 @@ void Variant::clear() {
 	switch (type) {
 		case STRING: {
 
+            if (_data._mem != NULL)
 			reinterpret_cast<String *>(_data._mem)->~String();
 		} break;
 		/*
@@ -1120,56 +1121,64 @@ void Variant::clear() {
 	*/
 		case MATRIX32: {
 
+            if (_data._matrix32!=NULL)
 			memdelete(_data._matrix32);
 
 		} break;
 		case _AABB: {
-
+            if (_data._aabb!=NULL)
 			memdelete(_data._aabb);
 
 		} break;
 		case MATRIX3: {
-
+            if (_data._matrix3!=NULL)
 			memdelete(_data._matrix3);
 		} break;
 		case TRANSFORM: {
-
+            if (_data._transform!=NULL)
 			memdelete(_data._transform);
 
 		} break;
 
 		// misc types
 		case IMAGE: {
-
+            if (_data._image!=NULL)
 			memdelete(_data._image);
 
 		} break;
 		case NODE_PATH: {
 
+            if (_data._mem != NULL)
 			reinterpret_cast<NodePath *>(_data._mem)->~NodePath();
 
 		} break;
 		case OBJECT: {
 
+            if (_get_obj().obj != NULL){
 			_get_obj().obj = NULL;
 			_get_obj().ref.unref();
+            }
 		} break;
 		case _RID: {
 			// not much need probably
+            if (_data._mem != NULL)
 			reinterpret_cast<RID *>(_data._mem)->~RID();
 		} break;
 		case DICTIONARY: {
 
+            if (_data._mem != NULL)
 			reinterpret_cast<Dictionary *>(_data._mem)->~Dictionary();
 
 		} break;
 		case ARRAY: {
 
+            if (_data._mem != NULL)
 			reinterpret_cast<Array *>(_data._mem)->~Array();
 
 		} break;
 		case INPUT_EVENT: {
 
+            if (_data._mem != NULL)
 			memdelete(_data._input_event);
 
 		} break;
@@ -1177,36 +1186,42 @@ void Variant::clear() {
 		// arrays
 		case RAW_ARRAY: {
 
+            if (_data._mem != NULL)
 			reinterpret_cast<DVector<uint8_t> *>(_data._mem)->~DVector<uint8_t>();
 
 		} break;
 		case INT_ARRAY: {
 
+            if (_data._mem != NULL)
 			reinterpret_cast<DVector<int> *>(_data._mem)->~DVector<int>();
 
 		} break;
 		case REAL_ARRAY: {
 
+            if (_data._mem != NULL)
 			reinterpret_cast<DVector<real_t> *>(_data._mem)->~DVector<real_t>();
 
 		} break;
 		case STRING_ARRAY: {
 
+            if (_data._mem != NULL)
 			reinterpret_cast<DVector<String> *>(_data._mem)->~DVector<String>();
 
 		} break;
 		case VECTOR2_ARRAY: {
 
+            if (_data._mem != NULL)
 			reinterpret_cast<DVector<Vector2> *>(_data._mem)->~DVector<Vector2>();
 
 		} break;
 		case VECTOR3_ARRAY: {
 
+            if (_data._mem != NULL)
 			reinterpret_cast<DVector<Vector3> *>(_data._mem)->~DVector<Vector3>();
 
 		} break;
 		case COLOR_ARRAY: {
-
+            if (_data._mem != NULL)
 			reinterpret_cast<DVector<Color> *>(_data._mem)->~DVector<Color>();
 
 		} break;
