@@ -91,7 +91,7 @@ gradle_asset_dirs_text = ""
 
 gradle_default_config_text = ""
 
-minSdk = 15
+minSdk = 19
 targetSdk = 24
 
 for x in env.android_default_config:
