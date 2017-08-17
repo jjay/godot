@@ -61,6 +61,10 @@ abstract public class PurchaseTask {
 	private boolean isLooping = false;
 	
 	public void purchase(final String sku, final String transactionId){
+        if (mService == null){
+            canceled();
+            return;
+        }
 		Log.d("XXX", "Starting purchase for: " + sku);
 		PaymentsCache pc = new PaymentsCache(context);
 		Boolean isBlocked = pc.getConsumableFlag("block", sku);

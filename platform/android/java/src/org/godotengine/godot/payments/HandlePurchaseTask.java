@@ -59,6 +59,10 @@ abstract public class HandlePurchaseTask {
 	public void handlePurchaseRequest(int resultCode, Intent data){
 //		Log.d("XXX", "Handling purchase response");
 //		int responseCode = data.getIntExtra("RESPONSE_CODE", 0);
+        if (data == null){
+            canceled();
+            return;
+        }
 		PaymentsCache pc = new PaymentsCache(context);
 		
 		String purchaseData = data.getStringExtra("INAPP_PURCHASE_DATA");
