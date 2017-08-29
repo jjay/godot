@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
+/*                      https://godotengine.org                          */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -324,6 +324,7 @@ Error VariantParser::get_token(Stream *p_stream, Token &r_token, int &line, Stri
 									is_float = true;
 								} else if (c == 'e') {
 									reading = READING_EXP;
+									is_float = true;
 								} else {
 									reading = READING_DONE;
 								}
@@ -335,7 +336,6 @@ Error VariantParser::get_token(Stream *p_stream, Token &r_token, int &line, Stri
 
 								} else if (c == 'e') {
 									reading = READING_EXP;
-
 								} else {
 									reading = READING_DONE;
 								}
@@ -347,8 +347,6 @@ Error VariantParser::get_token(Stream *p_stream, Token &r_token, int &line, Stri
 									exp_beg = true;
 
 								} else if ((c == '-' || c == '+') && !exp_sign && !exp_beg) {
-									if (c == '-')
-										is_float = true;
 									exp_sign = true;
 
 								} else {
