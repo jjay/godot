@@ -307,7 +307,7 @@ Error Vector<T>::resize(int p_size) {
 		for (int i = p_size; i < *_get_size(); i++) {
 
 			T *t = &_get_data()[i];
-			t->~T();
+            if (t != NULL) t->~T();
 		}
 
 		void *_ptrnew = (T *)memrealloc((uint8_t *)_ptr - sizeof(int) - sizeof(SafeRefCount), alloc_size);
