@@ -1051,9 +1051,8 @@ void SceneTree::_update_root_rect() {
 
 			//will stretch horizontally
 			viewport_size.x=desired_res.x;
-			viewport_size.y=desired_res.x / video_mode_aspect;
-			screen_size.x=video_mode.x/video_mode_aspect;
-			screen_size.y=video_mode.y;
+			viewport_size.y=desired_res.x/video_mode_aspect;
+			screen_size = video_mode;
 		} else if (stretch_aspect==STRETCH_ASPECT_EXPAND){
 			viewport_size.x=desired_res.x;
 			viewport_size.y=desired_res.x/video_mode_aspect;
