@@ -986,7 +986,7 @@ void Variant::call_ptr(const StringName &p_method, const Variant **p_args, int p
 		}
 
 #endif
-		ret = _get_obj().obj->call(p_method, p_args, p_argcount, r_error);
+		ret = obj->call(p_method, p_args, p_argcount, r_error);
 
 		//else if (type==Variant::METHOD) {
 
@@ -995,17 +995,15 @@ void Variant::call_ptr(const StringName &p_method, const Variant **p_args, int p
 		r_error.error = Variant::CallError::CALL_OK;
 
 		Map<StringName, _VariantCall::FuncData>::Element *E = _VariantCall::type_funcs[type].functions.find(p_method);
-#ifdef DEBUG_ENABLED
 		if (!E) {
 			r_error.error = Variant::CallError::CALL_ERROR_INVALID_METHOD;
 			return;
 		}
-#endif
 		_VariantCall::FuncData &funcdata = E->get();
 		funcdata.call(ret, *this, p_args, p_argcount, r_error);
 	}
 
-	if (r_error.error == Variant::CallError::CALL_OK && r_ret)
+	if (r_ret != NULL && r_error.error == Variant::CallError::CALL_OK && r_ret)
 		*r_ret = ret;
 }
 
