@@ -152,7 +152,7 @@ def configure(env):
     env.PrependENVPath('PATH', tools_path)
 
     env['CC'] = compiler_path + '/clang'
-    env['CXX'] = compiler_path + '/clang++'
+    env['CXX'] = compiler_path + '/clang++ -std=c++98'
     env['AR'] = tools_path + "/ar"
     env['RANLIB'] = tools_path + "/ranlib"
     env['AS'] = tools_path + "/as"
