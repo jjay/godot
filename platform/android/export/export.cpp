@@ -769,6 +769,11 @@ void EditorExportPlatformAndroid::_fix_manifest(Vector<uint8_t> &p_manifest, boo
 						string_table[attr_value] = get_package_name();
 					}
 
+					if (tname == "provider" && attrname == "authorities") {
+						print_line("FOUND authorities");
+						string_table[attr_value] = value.replace("com.godot.game", get_package_name());
+					}
+
 					//print_line("tname: "+tname);
 					//print_line("nspace: "+nspace);
 					//print_line("attrname: "+attrname);
