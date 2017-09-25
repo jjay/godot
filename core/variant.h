@@ -129,6 +129,9 @@ private:
 
 		Object *obj;
 		RefPtr ref;
+		uint32_t id;
+
+		bool is_valid() const;
 	};
 
 	_FORCE_INLINE_ ObjData &_get_obj();

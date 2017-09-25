@@ -37,6 +37,11 @@
 #include "scene/main/node.h"
 #include "variant_parser.h"
 
+
+bool Variant::ObjData::is_valid() const {
+    return obj && id && ObjectDB::get_instance(id);
+}
+
 String Variant::get_type_name(Variant::Type p_type) {
 
 	switch (p_type) {
@@ -801,7 +806,7 @@ bool Variant::is_zero() const {
 		} break;
 		case OBJECT: {
 
-			return _get_obj().obj == NULL;
+			return _get_obj().obj == NULL || _get_obj().id == 0;
 		} break;
 		case NODE_PATH: {
 
@@ -1157,6 +1162,7 @@ void Variant::clear() {
 
             if (_get_obj().obj != NULL){
 			_get_obj().obj = NULL;
+			_get_obj().id = 0;
 			_get_obj().ref.unref();
             }
 		} break;
@@ -1820,21 +1826,21 @@ Variant::operator RID() const {
 
 Variant::operator Object *() const {
 
-	if (type == OBJECT)
+	if (type == OBJECT && _get_obj().is_valid())
 		return _get_obj().obj;
 	else
 		return NULL;
 }
 Variant::operator Node *() const {
 
-	if (type == OBJECT)
+	if (type == OBJECT && _get_obj().is_valid())
 		return _get_obj().obj ? _get_obj().obj->cast_to<Node>() : NULL;
 	else
 		return NULL;
 }
 Variant::operator Control *() const {
 
-	if (type == OBJECT)
+	if (type == OBJECT && _get_obj().is_valid())
 		return _get_obj().obj ? _get_obj().obj->cast_to<Control>() : NULL;
 	else
 		return NULL;
@@ -2344,6 +2350,10 @@ Variant::Variant(const RefPtr &p_resource) {
 	memnew_placement(_data._mem, ObjData);
 	REF ref = p_resource;
 	_get_obj().obj = ref.ptr();
+	if (_get_obj().obj)
+		_get_obj().id = _get_obj().obj->get_instance_ID();
+	else
+		_get_obj().id = 0;
 	_get_obj().ref = p_resource;
 }
 
@@ -2359,6 +2369,10 @@ Variant::Variant(const Object *p_object) {
 
 	memnew_placement(_data._mem, ObjData);
 	_get_obj().obj = const_cast<Object *>(p_object);
+	if (p_object)
+		_get_obj().id = p_object->get_instance_ID();
+	else
+		_get_obj().id = 0;
 }
 
 Variant::Variant(const Dictionary &p_dictionary) {

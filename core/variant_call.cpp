@@ -971,11 +971,12 @@ void Variant::call_ptr(const StringName &p_method, const Variant **p_args, int p
 
 	if (type == Variant::OBJECT) {
 		//call object
-		Object *obj = _get_obj().obj;
-		if (!obj) {
+         
+		if (!_get_obj().is_valid()) {
 			r_error.error = CallError::CALL_ERROR_INSTANCE_IS_NULL;
 			return;
 		}
+		Object *obj = _get_obj().obj;
 #ifdef DEBUG_ENABLED
 		if (ScriptDebugger::get_singleton() && _get_obj().ref.is_null()) {
 			//only if debugging!

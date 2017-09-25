@@ -58,7 +58,7 @@ bool Variant::booleanize(bool &r_valid) const {
 		case COLOR:
 		case IMAGE: r_valid = false; return false;
 		case _RID: return (*reinterpret_cast<const RID *>(_data._mem)).is_valid();
-		case OBJECT: return _get_obj().obj;
+		case OBJECT: return _get_obj().is_valid();
 		case NODE_PATH: return (*reinterpret_cast<const NodePath *>(_data._mem)) != NodePath();
 		case INPUT_EVENT:
 		case DICTIONARY:
@@ -240,9 +240,9 @@ void Variant::evaluate(const Operator &p_op, const Variant &p_a, const Variant &
 					_RETURN(true);
 				//only against object is allowed
 				if (p_a.type == Variant::OBJECT) {
-					_RETURN(p_a._get_obj().obj == NULL);
+					_RETURN(!p_a._get_obj().is_valid());
 				} else if (p_b.type == Variant::OBJECT) {
-					_RETURN(p_b._get_obj().obj == NULL);
+					_RETURN(!p_b._get_obj().is_valid());
 				}
 				//otherwise, always false
 				_RETURN(false);
@@ -252,7 +252,7 @@ void Variant::evaluate(const Operator &p_op, const Variant &p_a, const Variant &
 
 				case NIL: {
 
-					_RETURN(p_b.type == NIL || (p_b.type == Variant::OBJECT && !p_b._get_obj().obj));
+					_RETURN(p_b.type == NIL || (p_b.type == Variant::OBJECT && !p_b._get_obj().is_valid()));
 				} break;
 
 					DEFAULT_OP_NUM(==, BOOL, _bool);
@@ -278,7 +278,7 @@ void Variant::evaluate(const Operator &p_op, const Variant &p_a, const Variant &
 					if (p_b.type == OBJECT)
 						_RETURN((p_a._get_obj().obj == p_b._get_obj().obj));
 					if (p_b.type == NIL)
-						_RETURN(!p_a._get_obj().obj);
+						_RETURN(!p_a._get_obj().is_valid());
 				} break;
 					DEFAULT_OP_PTRREF(==, INPUT_EVENT, _input_event);
 
