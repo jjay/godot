@@ -1126,9 +1126,14 @@ void Object::emit_signal(const StringName &p_name, const Variant **p_args, int p
 		Object *target;
 #ifdef DEBUG_ENABLED
 		target = ObjectDB::get_instance(slot_map.getk(i)._id);
-		ERR_CONTINUE(!target);
+        if (!target){
+            continue;
+        }
 #else
 		target = c.target;
+        if (!target){
+            continue;
+        }
 #endif
 
 		const Variant **args = p_args;
