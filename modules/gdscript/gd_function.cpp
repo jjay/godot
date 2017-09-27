@@ -842,25 +842,25 @@ Variant GDFunction::call(GDInstance *p_instance, const Variant **p_args, int p_a
 					}
 					Object *obj = argobj->operator Object *();
 					String signal = argname->operator String();
-#ifdef DEBUG_ENABLED
-
+					
 					if (!obj) {
 						err_text = "First argument of yield() is null.";
 						break;
 					}
+#ifdef DEBUG_ENABLED
 					if (ScriptDebugger::get_singleton()) {
 						if (!ObjectDB::instance_validate(obj)) {
 							err_text = "First argument of yield() is a previously freed instance.";
 							break;
 						}
 					}
+#endif
 					if (signal.length() == 0) {
 
 						err_text = "Second argument of yield() is an empty string (for signal name).";
 						break;
 					}
 
-#endif
 					Error err = obj->connect(signal, gdfs.ptr(), "_signal_callback", varray(gdfs), Object::CONNECT_ONESHOT);
 					if (err != OK) {
 						err_text = "Error connecting to signal: " + signal + " during yield().";
