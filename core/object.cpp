@@ -1121,20 +1121,9 @@ void Object::emit_signal(const StringName &p_name, const Variant **p_args, int p
 
 	for (int i = 0; i < ssize; i++) {
 
+		Object *target = ObjectDB::get_instance(slot_map.getk(i)._id);
+		if (!target) continue;
 		const Connection &c = slot_map.getv(i).conn;
-
-		Object *target;
-#ifdef DEBUG_ENABLED
-		target = ObjectDB::get_instance(slot_map.getk(i)._id);
-        if (!target){
-            continue;
-        }
-#else
-		target = c.target;
-        if (!target){
-            continue;
-        }
-#endif
 
 		const Variant **args = p_args;
 		int argc = p_argcount;
