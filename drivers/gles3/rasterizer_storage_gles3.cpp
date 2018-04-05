@@ -1093,9 +1093,66 @@ Ref<Image> RasterizerStorageGLES3::texture_get_data(RID p_texture, int p_layer) 
 
 	return Ref<Image>(img);
 #else
+	PoolVector<uint8_t> data;
 
-	ERR_EXPLAIN("Sorry, It's not possible to obtain images back in OpenGL ES");
-	ERR_FAIL_V(Ref<Image>());
+	int w = texture->alloc_width;
+	int h = texture->alloc_height;
+	int data_size = Image::get_image_data_size(w, h, Image::Format::FORMAT_RGBA8, 0);
+
+	data.resize(data_size * 2); //add some memory at the end, just in case for buggy drivers
+	PoolVector<uint8_t>::Write wb = data.write();
+
+	//glActiveTexture(GL_TEXTURE0);
+
+	//glBindTexture(texture->target, texture->tex_id);
+
+	//glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
+
+	//print_line("GET FORMAT: " + Image::get_format_name(texture->format) + " mipmaps: " + itos(texture->mipmaps));
+	//print_line("fb bind");
+	glBindFramebuffer(GL_FRAMEBUFFER, texture->render_target->fbo);
+	//glBindRenderbuffer(GL_RENDERBUFFER, texture->render_target->fbo);
+	//glViewport(0, 0, w, h);
+	//glPixelStorei(GL_PACK_ALIGNMENT, 1);
+	//print_line("read pixels " + itos(texture->width) + "x" + itos(texture->height) + " (" + itos(data_size) + ")" + ", format " + itos(texture->gl_internal_format_cache) + ", mipmaps: " + itos(texture->mipmaps));
+	glReadPixels(0, 0, w, h, GL_RGBA, GL_UNSIGNED_BYTE, &wb[0]);
+	//print_line("creating image");
+
+
+
+	Image::Format img_format = Image::Format::FORMAT_RGBA8;
+	/*
+	//convert special case RGB10_A2 to RGBA8 because it's not a supported image format
+	if (texture->gl_internal_format_cache == GL_RGB10_A2) {
+
+		img_format = Image::FORMAT_RGBA8;
+
+		uint32_t *ptr = (uint32_t *)wb.ptr();
+		uint32_t num_pixels = data_size / 4;
+
+		for (int ofs = 0; ofs < num_pixels; ofs++) {
+			uint32_t px = ptr[ofs];
+			uint32_t a = px >> 30 & 0xFF;
+
+			ptr[ofs] = (px >> 2 & 0xFF) |
+					   (px >> 12 & 0xFF) << 8 |
+					   (px >> 22 & 0xFF) << 16 |
+					   (a | a << 2 | a << 4 | a << 6) << 24;
+		}
+	} else {
+		img_format = texture->format;
+	}
+	*/
+
+	wb = PoolVector<uint8_t>::Write();
+	data.resize(data_size);
+	Image *img = memnew(Image(w, h, false, img_format, data));
+	//print_line("image created");
+
+	return Ref<Image>(img);
+	//print_line("Sorry, It's not possible to obtain images back in OpenGL ES");
+	//ERR_EXPLAIN("Sorry, It's not possible to obtain images back in OpenGL ES");
+	//return Ref<Image>();
 #endif
 }
 
@@ -6530,6 +6587,13 @@ void RasterizerStorageGLES3::_render_target_allocate(RenderTarget *rt) {
 	GLuint color_format;
 	GLuint color_type;
 	Image::Format image_format;
+	//print_line("Allocating render target " + itos(rt->width) + "x" + itos(rt->height));
+	//print_line("RENDER_TARGET_NO_3D: " + (rt->flags[RENDER_TARGET_NO_3D]? String("true"):String("false")));
+	//print_line("RENDER_TARGET_NO_3D_EFFECTS: " + (rt->flags[RENDER_TARGET_NO_3D_EFFECTS]? String("true"):String("false")));
+	//print_line("RENDER_TARGET_HDR: " + (rt->flags[RENDER_TARGET_HDR]? String("true"):String("false")));
+	//print_line("RENDER_TARGET_TRANSPARENT: " + (rt->flags[RENDER_TARGET_TRANSPARENT]? String("true"):String("false")));
+	//print_line("RENDER_TARGET_NO_SAMPLING: " + (rt->flags[RENDER_TARGET_NO_SAMPLING]? String("true"):String("false")));
+
 
 	bool hdr = rt->flags[RENDER_TARGET_HDR] && config.hdr_supported;
 	//hdr = false;
