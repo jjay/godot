@@ -447,6 +447,8 @@ void ScriptTextEditor::set_edited_script(const Ref<Script> &p_script) {
 
 	emit_signal("name_changed");
 	_line_col_changed();
+	set_filename(script->get_path());
+	
 }
 
 void ScriptTextEditor::_validate_script() {
@@ -2079,7 +2081,6 @@ void ScriptEditor::edit(const Ref<Script> &p_script) {
 			continue;
 
 		if (ste->get_edited_script() == p_script) {
-
 			if (open_dominant || !EditorNode::get_singleton()->is_changing_scene()) {
 				if (tab_container->get_current_tab() != i) {
 					_go_to_tab(i);

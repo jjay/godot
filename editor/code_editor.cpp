@@ -437,6 +437,7 @@ void FindReplaceBar::set_error(const String &p_label) {
 	error_label->set_text(p_label);
 }
 
+
 void FindReplaceBar::set_text_edit(TextEdit *p_text_edit) {
 
 	text_edit = p_text_edit;
@@ -1070,12 +1071,28 @@ void CodeTextEditor::update_editor_settings() {
 }
 
 void CodeTextEditor::set_error(const String &p_error) {
-
+	error->set_text(p_error);
 	if (p_error != "") {
-		error->set_text(p_error);
 		error->show();
+		file_caption->hide();
+		file_txt->hide();
 	} else {
 		error->hide();
+		if (file_txt->get_text() != ""){
+			file_caption->show();
+			file_txt->show();
+		}
+	}
+}
+
+void CodeTextEditor::set_filename(const String &p_file){
+	file_txt->set_text(p_file);
+	if (p_file != "" && error->get_text() == ""){
+		file_caption->show();
+		file_txt->show();
+	} else {
+		file_caption->hide();
+		file_txt->hide();
 	}
 }
 
@@ -1193,12 +1210,30 @@ CodeTextEditor::CodeTextEditor() {
 
 	status_bar->add_spacer();
 
+	file_caption = memnew(Label);
+	status_bar->add_child(file_caption);
+	file_caption->set_align(Label::ALIGN_RIGHT);
+	file_caption->set_valign(Label::VALIGN_CENTER);
+	file_caption->set_v_size_flags(SIZE_FILL);
+	file_caption->set_text(TTR("File:"));
+	
+	file_txt = memnew(Label);
+	status_bar->add_child(file_txt);
+	file_txt->set_align(Label::ALIGN_RIGHT);
+	file_txt->set_valign(Label::VALIGN_CENTER);
+	file_txt->set_v_size_flags(SIZE_FILL);
+
+	Control *file_sep = memnew(Control);
+	status_bar->add_child(file_sep);
+	file_sep->set_custom_minimum_size(Vector2(10,1) * EDSCALE);
+	
 	Label *line_txt = memnew(Label);
 	status_bar->add_child(line_txt);
 	line_txt->set_align(Label::ALIGN_RIGHT);
 	line_txt->set_valign(Label::VALIGN_CENTER);
 	line_txt->set_v_size_flags(SIZE_FILL);
 	line_txt->set_text(TTR("Line:"));
+
 
 	line_nb = memnew(Label);
 	status_bar->add_child(line_nb);

@@ -1,15 +1,21 @@
 [submodule "modules/spine"]
 	path = modules/spine
-	url = git@github.com:jjay/godot-spine-module
+	url = git@gitlab.com:evil-farm/godot-spine-module.git
 [submodule "modules/appsflyer"]
 	path = modules/appsflyer
-	url = ssh://git@labs.corpwebgames.com:722/summertales/godot-appsflyer-module.git
+	url = git@gitlab.com:evil-farm/godot-appsflyer-module.git
 [submodule "modules/notifications"]
 	path = modules/notifications
-	url = git@github.com:jjay/godot-notifications.git
+	url = git@gitlab.com:evil-farm/godot-notifications-module.git
 [submodule "modules/facebook"]
 	path = modules/facebook
-	url = git@github.com:jjay/godot-facebook.git
+	url = git@gitlab.com:evil-farm/godot-facebook-module.git
 [submodule "modules/zendesk"]
 	path = modules/zendesk
-	url = git@github.com:jjay/godot-zendesk.git
+	url = git@gitlab.com:evil-farm/godot-zendesk-module.git
+[submodule "modules/FireBase"]
+	path = modules/FireBase
+	url = git@gitlab.com:evil-farm/godot-firebase-module.git
+[submodule "modules/SQLBridge"]
+	path = modules/SQLBridge
+	url = git@gitlab.com:evil-farm/godot-sqlbridge-module.git

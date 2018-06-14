@@ -210,7 +210,8 @@ public class GodotPaymentV3 extends Godot.SingletonBase {
 	}
 
 	public void completeSkuDetail() {
-		GodotLib.calldeferred(purchaseCallbackId, "sku_details_complete", new Object[]{mSkuDetails});
+		JSONObject o = new JSONObject(mSkuDetails);
+		GodotLib.calldeferred(purchaseCallbackId, "sku_details_complete", new Object[]{o.toString()});
 	}
 
 	public void errorSkuDetail(String errorMessage) {

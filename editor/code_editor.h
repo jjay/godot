@@ -192,6 +192,8 @@ class CodeTextEditor : public VBoxContainer {
 	TextEdit *text_editor;
 	FindReplaceBar *find_replace_bar;
 
+	Label *file_caption;
+	Label *file_txt;
 	Label *line_nb;
 	Label *col_nb;
 	Label *info;
@@ -217,6 +219,7 @@ class CodeTextEditor : public VBoxContainer {
 
 protected:
 	void set_error(const String &p_error);
+	void set_filename(const String &p_file);
 
 	virtual void _load_theme_settings() {}
 	virtual void _validate_script() = 0;

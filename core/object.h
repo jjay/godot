@@ -396,6 +396,7 @@ private:
 
 	HashMap<StringName, Signal, StringNameHasher> signal_map;
 	List<Connection> connections;
+	//List<ObjData*> variant_data; 
 #ifdef DEBUG_ENABLED
 	SafeRefCount _lock_index;
 #endif

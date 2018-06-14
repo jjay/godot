@@ -30,6 +30,8 @@
 #include "quick_open.h"
 #include "os/keyboard.h"
 
+#define MAX_SIMILARITY_SORT_SIZE 20
+
 void EditorQuickOpen::popup(const StringName &p_base, bool p_enable_multi, bool p_add_dirs, bool p_dontclear) {
 
 	add_directories = p_add_dirs;
@@ -169,8 +171,8 @@ void EditorQuickOpen::_parse_fs(EditorFileSystemDirectory *efsd, Vector<Pair<Str
 			Pair<String, Ref<Texture> > pair;
 			pair.first = file;
 			pair.second = get_icon((has_icon(efsd->get_file_type(i), ei) ? efsd->get_file_type(i) : ot), ei);
-
-			if (search_text != String() && list.size() > 0) {
+			
+			if (list.size() < MAX_SIMILARITY_SORT_SIZE && search_text != String() && list.size() > 0) {
 
 				float this_sim = _path_cmp(search_text, file);
 				float other_sim = _path_cmp(list[0].first, file);

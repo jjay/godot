@@ -210,6 +210,7 @@ public class GodotView extends GLSurfaceView implements InputDeviceListener {
 		joy.device_id = deviceId;
 		int id = joy_devices.size();
 		InputDevice device = mInputManager.getInputDevice(deviceId);
+		if (device == null) return;
 		joy.name = device.getName();
 		joy.axes = new ArrayList<InputDevice.MotionRange>();
 		joy.hats = new ArrayList<InputDevice.MotionRange>();
