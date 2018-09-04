@@ -1811,8 +1811,14 @@ void Control::add_shader_override(const StringName &p_name, const Ref<Shader> &p
 }
 void Control::add_style_override(const StringName &p_name, const Ref<StyleBox> &p_style) {
 
-	ERR_FAIL_COND(p_style.is_null());
-	data.style_override[p_name] = p_style;
+	if (p_style.is_null() && !data.style_override.has(p_name)) {
+		return;
+	}
+	if (p_style.is_null()){
+		data.style_override.erase(p_name);
+	} else {
+		data.style_override[p_name] = p_style;
+	}
 	notification(NOTIFICATION_THEME_CHANGED);
 	update();
 }
