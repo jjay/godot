@@ -111,6 +111,9 @@ private:
 	Size2 size_override;
 	float lossy_storage_quality;
 	mutable Ref<BitMap> alpha_cache;
+#ifdef TOOLS_ENABLED
+	Ref<Image> original_image;
+#endif
 
 protected:
 	virtual void reload_from_file();
