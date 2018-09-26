@@ -602,13 +602,15 @@ Vector2 SteeringBehaviour::process_freeze(SteeringBehaviours *controller) const 
 }
 
 Vector2 SteeringBehaviour::process_follow(SteeringBehaviours *controller) const {
-    if (follow_target.get_ref() == Variant()) return Vector2();
     Node2D *target = Object::cast_to<Node2D>(follow_target.get_ref());
     if (target == NULL) return Vector2();
     Vector2 to_target = target->get_position() - get_position();
     float dist = to_target.length();
     float speed = Math::lerp(0, max_speed, MIN(follow_offset, dist)/follow_offset);
     Vector2 desired_velocity = to_target*speed/dist;
+    Vector2 ret = desired_velocity - velocity;
+    float x = ret.x;
+    float y = ret.y;
     return desired_velocity - velocity;
 
 }
@@ -718,6 +720,8 @@ int SteeringBehaviour::get_smooth_frames() const { return smooth_frames; }
 void SteeringBehaviour::set_target_position(Vector2 pos) { target_position = pos; }
 void SteeringBehaviour::set_follow_target(Variant target) { follow_target.set_obj(target); }
 Variant SteeringBehaviour::get_follow_target()const { return Object::cast_to<Node2D>(follow_target.get_ref()); }
+void SteeringBehaviour::set_follow_offset(float offset) { follow_offset = offset; }
+float SteeringBehaviour::get_follow_offset()const { return follow_offset; }
 void SteeringBehaviour::set_configuration(const Ref<SteeringBehaviourConfiguration> &conf) { configuration = conf; }
 Ref<SteeringBehaviourConfiguration> SteeringBehaviour::get_configuration() const { return configuration; }
 Vector2 SteeringBehaviour::get_target_position() const { return target_position; }
@@ -792,6 +796,8 @@ void SteeringBehaviour::_bind_methods() {
     ClassDB::bind_method(D_METHOD("get_target_position"), &SteeringBehaviour::get_target_position);
     ClassDB::bind_method(D_METHOD("set_follow_target", "follow_target"), &SteeringBehaviour::set_follow_target);
     ClassDB::bind_method(D_METHOD("get_follow_target"), &SteeringBehaviour::get_follow_target);    
+    ClassDB::bind_method(D_METHOD("set_follow_offset", "follow_offset"), &SteeringBehaviour::set_follow_offset);
+    ClassDB::bind_method(D_METHOD("get_follow_offset"), &SteeringBehaviour::get_follow_offset);    
     ClassDB::bind_method(D_METHOD("set_configuration", "configuration"), &SteeringBehaviour::set_configuration);
     ClassDB::bind_method(D_METHOD("get_configuration"), &SteeringBehaviour::get_configuration);
 
@@ -803,7 +809,8 @@ void SteeringBehaviour::_bind_methods() {
     ADD_PROPERTY(PropertyInfo(Variant::REAL, "max_turn_rate"), "set_max_turn_rate", "get_max_turn_rate");
     ADD_PROPERTY(PropertyInfo(Variant::INT, "smooth_frames", PROPERTY_HINT_RANGE, "0,100,1"), "set_smooth_frames", "get_smooth_frames");
     ADD_PROPERTY(PropertyInfo(Variant::VECTOR2, "target_position"), "set_target_position", "get_target_position");
-    ADD_PROPERTY(PropertyInfo(Variant::VECTOR2, "follow_target"), "set_follow_target", "get_follow_target");    
+    ADD_PROPERTY(PropertyInfo(Variant::NIL, "follow_target"), "set_follow_target", "get_follow_target");    
+    ADD_PROPERTY(PropertyInfo(Variant::REAL, "follow_offset"), "set_follow_offset", "get_follow_offset");    
     ADD_PROPERTY(PropertyInfo(Variant::INT, "behaviour_mode", PROPERTY_HINT_ENUM, "idle,fixed,static"), "set_behaviour_mode", "get_behaviour_mode");
 
     ADD_SIGNAL(MethodInfo("arrived"));
@@ -828,6 +835,7 @@ SteeringBehaviour::SteeringBehaviour(){
     float max_speed = 100.0;
     float max_force = 100.0;
     float max_turn_rate = 1.57;
+    follow_offset = 1.f;
 }
 
 SteeringBehaviour::~SteeringBehaviour(){
