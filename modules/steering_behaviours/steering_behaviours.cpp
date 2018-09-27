@@ -608,11 +608,7 @@ Vector2 SteeringBehaviour::process_follow(SteeringBehaviours *controller) const 
     float dist = to_target.length();
     float speed = Math::lerp(0, max_speed, MIN(follow_offset, dist)/follow_offset);
     Vector2 desired_velocity = to_target*speed/dist;
-    Vector2 ret = desired_velocity - velocity;
-    float x = ret.x;
-    float y = ret.y;
     return desired_velocity - velocity;
-
 }
 
 const float DETECTION_BOX_MIN_LENGTH = 400.0;
