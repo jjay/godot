@@ -824,17 +824,16 @@ void SteeringBehaviour::_bind_methods() {
 
 
 SteeringBehaviour::SteeringBehaviour(){
-    first_frame = true;
-    unsigned int configuration = 0;
-    unsigned int smooth_frames = 1;
-    Vector2 velocity = Vector2();
-    Vector2 force = Vector2();
-    float speed = 0.0;
-    float size = 50.0;
-    float mass = 1.0;
-    float max_speed = 100.0;
-    float max_force = 100.0;
-    float max_turn_rate = 1.57;
+    first_frame = true;    
+    smooth_frames = 1;
+    velocity = Vector2();
+    force = Vector2();
+    speed = 0.0;
+    size = 50.0;
+    mass = 1.0;
+    max_speed = 100.0;
+    max_force = 100.0;
+    max_turn_rate = 1.57;
     follow_offset = 1.f;
 }
 
