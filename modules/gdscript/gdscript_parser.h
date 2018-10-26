@@ -229,6 +229,13 @@ public:
 		}
 	};
 
+	struct AwaitNode : public Node {
+		Node *expression;
+		AwaitNode(){
+			expression = NULL;
+		}
+	};
+
 	struct BlockNode : public Node {
 
 		ClassNode *parent_class;
@@ -346,6 +353,7 @@ public:
 			OP_CALL,
 			OP_PARENT_CALL,
 			OP_YIELD,
+			OP_AWAIT,
 			OP_IS,
 			OP_IS_BUILTIN,
 			//indexing operator
